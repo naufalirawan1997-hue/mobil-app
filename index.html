@@ -1,178 +1,511 @@
-<!DOCTYPE html>
+index.html<!DOCTYPE html>
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>Mobil App Online</title>
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#FFFFFF">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="HTL & Jualan">
+<link rel="manifest" href="manifest.json">
+<title>HTL & Jualan Mobil</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
-body { font-family: Arial; background:#eef2f7; padding:15px; }
-.container { max-width:1000px; margin:auto; }
-.card { background:white; padding:15px; border-radius:10px; margin-bottom:20px; }
-
-input, select {
-  padding:10px;
-  margin:5px;
-  border-radius:6px;
-  border:1px solid #ccc;
-  width:calc(50% - 20px);
+:root{
+  --bg:#F5F7FA;--surface:#FFFFFF;--card:#FFFFFF;--accent:#1A56DB;--accent2:#E3342F;--green:#0D9F6E;
+  --text:#1A202C;--muted:#718096;--border:#E2E8F0;--radius:14px;--shadow:0 2px 8px rgba(0,0,0,0.07);
 }
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:"Inter",sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
 
-button { padding:10px; margin:5px; border:none; border-radius:6px; cursor:pointer; }
-.btn-add { background:#28a745; color:white; }
-.btn-hapus { background:red; color:white; }
+header{background:#FFFFFF;padding:18px 20px 0;position:sticky;top:0;z-index:100;border-bottom:1px solid var(--border);box-shadow:0 1px 6px rgba(0,0,0,0.06)}
+.header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.logo{font-family:"Inter",sans-serif;font-weight:900;font-size:21px;color:var(--accent);letter-spacing:-0.5px;letter-spacing:-0.5px}
+.logo span{font-size:11px;display:block;font-weight:400;color:var(--muted);margin-top:-1px;letter-spacing:0}
+.btn-add{background:var(--accent);color:#fff;border:none;border-radius:10px;padding:10px 18px;font-family:"Inter",sans-serif;font-weight:700;font-size:13px;cursor:pointer;box-shadow:0 2px 8px rgba(26,86,219,0.25)}
+.btn-add:active{transform:scale(0.96);opacity:0.9}
+.search-wrap{position:relative;margin-bottom:12px}
+.search-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:14px}
+input[type="search"]{width:100%;background:#F1F5F9;border:1.5px solid var(--border);border-radius:10px;padding:11px 16px 11px 40px;color:var(--text);font-family:"Inter",sans-serif;font-size:14px;outline:none;-webkit-appearance:none}
+input[type="search"]:focus{border-color:var(--accent);background:#fff}
+input[type="search"]::placeholder{color:#A0AEC0}
+.stats-bar{display:flex;gap:8px;overflow-x:auto;padding-bottom:14px;scrollbar-width:none}
+.stats-bar::-webkit-scrollbar{display:none}
+.stat-chip{background:#EBF4FF;border:none;border-radius:8px;padding:5px 12px;font-size:12px;white-space:nowrap;color:var(--accent);flex-shrink:0;font-weight:600}
 
-table { width:100%; border-collapse: collapse; }
-th, td { padding:10px; text-align:center; }
-th { background:#333; color:white; }
+main{padding:16px 16px 100px}
+
+/* FILTER */
+.filter-section{margin-bottom:14px;background:#fff;border-radius:12px;padding:14px;box-shadow:var(--shadow);border:1px solid var(--border)}
+.filter-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.filter-title{font-family:"Inter",sans-serif;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.btn-reset-all{background:none;border:none;color:var(--accent2);font-size:12px;font-family:"Inter",sans-serif;cursor:pointer;padding:0;display:none;font-weight:600}
+.btn-reset-all.visible{display:block}
+.filter-group{margin-bottom:8px}
+.filter-group-label{font-size:10px;color:var(--muted);margin-bottom:6px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px}
+.chips-row{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.chips-row::-webkit-scrollbar{display:none}
+.chip{background:#F1F5F9;border:1.5px solid var(--border);border-radius:8px;padding:5px 12px;font-size:12px;color:var(--muted);cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all 0.15s;font-family:"Inter",sans-serif;font-weight:500}
+.chip:active{transform:scale(0.95)}
+.chip.active{background:#EBF4FF;border-color:var(--accent);color:var(--accent);font-weight:700}
+.chip.year.active{background:#FFF8E1;border-color:#F59E0B;color:#B45309}
+.chip.tipe.active{background:#FEF2F2;border-color:var(--accent2);color:var(--accent2)}
+.chip.model.active{background:#F0FDF4;border-color:#16A34A;color:#16A34A}
+.chip.varian.active{background:#F5F3FF;border-color:#7C3AED;color:#7C3AED}
+
+/* RESULT */
+.result-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.result-info{font-size:12px;color:var(--muted)}
+.result-info strong{color:var(--text);font-weight:700}
+.sort-btn{font-size:12px;color:var(--accent);background:#EBF4FF;border:none;border-radius:8px;padding:5px 12px;cursor:pointer;font-family:"Inter",sans-serif;font-weight:600}
+.sort-btn:active{background:#DBEAFE}
+
+/* CARDS */
+.car-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);margin-bottom:10px;overflow:hidden;animation:fadeUp 0.22s ease both;box-shadow:var(--shadow)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.card-header{display:flex;align-items:center;justify-content:space-between;padding:13px 16px 10px;border-bottom:1px solid var(--border)}
+.car-brand{font-family:"Inter",sans-serif;font-weight:800;font-size:16px;color:var(--text);letter-spacing:-0.3px}
+.car-model{font-size:12px;color:var(--muted);margin-top:2px}
+.car-year{background:#FFF8E1;color:#B45309;border-radius:6px;padding:3px 9px;font-size:11px;font-weight:700;font-family:"Inter",sans-serif;border:1px solid #FDE68A}
+.card-prices{display:grid;grid-template-columns:1fr 1fr}
+.price-block{padding:11px 16px}
+.price-block:first-child{border-right:1px solid var(--border)}
+.price-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px;font-weight:600}
+.price-value{font-family:"Inter",sans-serif;font-weight:800;font-size:14px}
+.price-value.htl{color:var(--accent2)}
+.price-value.jual{color:var(--green)}
+.price-range{font-size:10px;color:#A0AEC0;margin-top:2px}
+.card-footer{padding:9px 16px;background:#F8FAFC;display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--border)}
+.margin-label{font-size:11px;color:var(--muted)}
+.margin-value{font-family:"Inter",sans-serif;font-weight:800;font-size:13px;color:var(--accent)}
+.card-actions{display:flex;gap:6px}
+.btn-icon{background:#F1F5F9;border:1px solid var(--border);border-radius:8px;padding:5px 10px;color:var(--muted);font-size:13px;cursor:pointer;transition:all 0.15s}
+.btn-icon:active{background:#E2E8F0}
+.updated-at{font-size:10px;color:#A0AEC0;margin-top:3px;font-weight:400}
+.empty-state{text-align:center;padding:50px 20px;color:var(--muted)}
+.empty-state .icon{font-size:44px;margin-bottom:14px}
+.loading{text-align:center;padding:40px;color:var(--muted)}
+.spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 14px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.sync-status{font-size:11px;color:var(--muted);display:flex;align-items:center;margin-bottom:12px;gap:6px}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:#0D9F6E;animation:pulse 2s infinite;flex-shrink:0}
+.sync-dot.offline{background:var(--accent2);animation:none}
+.sync-dot.connecting{background:#F59E0B}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,0.5);z-index:200;align-items:flex-end;backdrop-filter:blur(3px)}
+.modal-overlay.active{display:flex}
+.modal{background:#fff;border-radius:20px 20px 0 0;padding:22px 20px 40px;width:100%;max-height:92vh;overflow-y:auto;animation:slideUp 0.28s cubic-bezier(0.34,1.56,0.64,1)}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-handle{width:36px;height:4px;background:#E2E8F0;border-radius:2px;margin:0 auto 18px}
+.modal-title{font-family:"Inter",sans-serif;font-size:18px;font-weight:800;margin-bottom:20px;color:var(--accent)}
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:7px}
+.form-group input{width:100%;background:#F8FAFC;border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;color:var(--text);font-family:"Inter",sans-serif;font-size:15px;outline:none;-webkit-appearance:none}
+.form-group input:focus{border-color:var(--accent);background:#fff;box-shadow:0 0 0 3px rgba(26,86,219,0.08)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.hint{font-size:11px;color:#A0AEC0;margin-top:4px}
+.modal-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px}
+.btn-cancel{background:#F1F5F9;border:none;border-radius:10px;padding:13px;color:var(--muted);font-family:"Inter",sans-serif;font-weight:700;font-size:14px;cursor:pointer}
+.btn-save{background:var(--accent);border:none;border-radius:10px;padding:13px;color:#fff;font-family:"Inter",sans-serif;font-weight:700;font-size:14px;cursor:pointer;box-shadow:0 2px 8px rgba(26,86,219,0.3)}
+
+.toast{position:fixed;bottom:84px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--text);color:#fff;padding:11px 22px;border-radius:10px;font-family:"Inter",sans-serif;font-weight:700;font-size:13px;opacity:0;transition:all 0.25s;z-index:300;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,0.15)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--border);display:flex;justify-content:space-around;padding:10px 0 20px;box-shadow:0 -2px 8px rgba(0,0,0,0.06)}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;color:var(--muted);font-weight:600;cursor:pointer;padding:0 20px}
+.nav-item.active{color:var(--accent)}
+.nav-item .nav-icon{font-size:20px}
 </style>
 </head>
-
 <body>
 
-<div class="container">
+<header>
+  <div class="header-top">
+    <div class="logo">HTL & Jualan<span>Data Harga Mobil</span></div>
+    <button class="btn-add" onclick="openModal()">＋ Tambah</button>
+  </div>
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="search" id="searchInput" placeholder="Cari merk atau model..." oninput="render()">
+  </div>
+  <div class="stats-bar" id="statsBar"></div>
+</header>
 
-<h2>🚗 Mobil App (Online)</h2>
+<main>
+  <div class="sync-status">
+    <span class="sync-dot connecting" id="syncDot"></span>
+    <span id="syncText">Menghubungkan...</span>
+  </div>
 
-<div class="card">
-<input id="merk" placeholder="Merk">
-<input id="type" placeholder="Type">
-<input id="tahun" type="number" placeholder="Tahun">
+  <!-- FILTER -->
+  <div class="filter-section">
+    <div class="filter-row">
+      <div class="filter-title">Filter</div>
+      <button class="btn-reset-all" id="btnResetAll" onclick="resetFilter()">✕ Reset filter</button>
+    </div>
+    <div class="filter-group">
+      <div class="filter-group-label">Merk</div>
+      <div class="chips-row" id="merkChips"></div>
+    </div>
+    <div class="filter-group">
+      <div class="filter-group-label">Model</div>
+      <div class="chips-row" id="modelChips"></div>
+    </div>
+    <div class="filter-group">
+      <div class="filter-group-label">Tipe / Varian</div>
+      <div class="chips-row" id="varianChips"></div>
+    </div>
+    <div class="filter-group">
+      <div class="filter-group-label">Tahun</div>
+      <div class="chips-row" id="tahunChips"></div>
+    </div>
+    <div class="filter-group">
+      <div class="filter-group-label">Transmisi</div>
+      <div class="chips-row" id="tipeChips"></div>
+    </div>
+  </div>
 
-<select id="transmisi">
-<option>Manual</option>
-<option>AT</option>
-<option>CVT</option>
-</select>
+  <div class="result-bar">
+    <div class="result-info" id="resultInfo"></div>
+    <button class="sort-btn" onclick="toggleSort()">⇅ <span id="sortLabel">HTL ↑</span></button>
+  </div>
 
-<input id="pajak" placeholder="Pajak">
-<input id="beli" placeholder="Harga Beli" onkeyup="formatInputRupiah(this)">
-<input id="jual" placeholder="Harga Jual" onkeyup="formatInputRupiah(this)">
-<input id="biaya" placeholder="Biaya" onkeyup="formatInputRupiah(this)">
+  <div id="cardContainer"><div class="loading"><div class="spinner"></div>Memuat data...</div></div>
+</main>
 
-<br>
-<button class="btn-add" onclick="tambahData()">Tambah Data</button>
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeOnOverlay(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="modalTitle">Tambah Mobil Baru</div>
+    <div class="form-group"><label>Merk</label><input type="text" id="fMerk" placeholder="Daihatsu, Toyota..."></div>
+    <div class="form-row">
+      <div class="form-group"><label>Model</label><input type="text" id="fModel" placeholder="Sigra..."></div>
+      <div class="form-group"><label>Tahun</label><input type="number" id="fTahun" placeholder="2024"></div>
+    </div>
+    <div class="form-group"><label>Tipe / Varian</label><input type="text" id="fTipe" placeholder="1.2 R AT..."></div>
+    <div class="form-group">
+      <label>HTL (juta)</label>
+      <div class="form-row">
+        <div><input type="number" id="fHtlMin" placeholder="Min"><div class="hint">Min</div></div>
+        <div><input type="number" id="fHtlMax" placeholder="Max"><div class="hint">Max</div></div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Harga Jual (juta)</label>
+      <div class="form-row">
+        <div><input type="number" id="fJualMin" placeholder="Min"><div class="hint">Min</div></div>
+        <div><input type="number" id="fJualMax" placeholder="Max"><div class="hint">Max</div></div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Batal</button>
+      <button class="btn-save" onclick="saveData()">Simpan</button>
+    </div>
+  </div>
 </div>
 
-<div class="card">
-<table>
-<thead>
-<tr>
-<th>Merk</th>
-<th>Type</th>
-<th>Tahun</th>
-<th>Transmisi</th>
-<th>Beli</th>
-<th>Jual</th>
-<th>Profit</th>
-<th>Aksi</th>
-</tr>
-</thead>
-<tbody id="dataTable"></tbody>
-</table>
+<div class="toast" id="toast"></div>
+
+<div class="bottom-nav">
+  <div class="nav-item active"><span class="nav-icon">🚗</span>Daftar</div>
+  <div class="nav-item" onclick="showStats()"><span class="nav-icon">📊</span>Statistik</div>
+  <div class="nav-item" onclick="exportCSV()"><span class="nav-icon">📥</span>Export</div>
 </div>
 
-</div>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, onValue, push, set, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-<!-- FIREBASE -->
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
-
-<script>
-// 🔥 ISI DARI FIREBASE KAMU
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyCsVH4wIx4ZG8zJPSlEfA4JTv1qqt4l26s",
-  authDomain: "mobil-app-1cb44.firebaseapp.com",
-  projectId: "mobil-app-1cb44",
-  storageBucket: "mobil-app-1cb44.firebasestorage.app",
-  messagingSenderId: "245563336447",
-  appId: "1:245563336447:web:3b95bc5b52e267fb88ceca"
+  apiKey: "AIzaSyB67bDvGa6XAM59w1PFUONsFEQgKcxVyuM",
+  authDomain: "htldanjual.firebaseapp.com",
+  databaseURL: "https://htldanjual-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "htldanjual",
+  storageBucket: "htldanjual.firebasestorage.app",
+  messagingSenderId: "978713261279",
+  appId: "1:978713261279:web:660f05b255e9beffe3656a",
+  measurementId: "G-RT8NM3TWDZ"
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
-};
+const db = getDatabase(app);
+const mobilRef = ref(db, "mobil");
 
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+let allData = {};
+let editKey = null;
+let selMerk = [];
+let selTahun = [];
+let selTipe = [];
+let selModel = [];
+let selVarian = [];
+let sortMode = 0; // 0=htl asc, 1=htl desc, 2=jual asc, 3=jual desc
+const sortLabels = ["HTL ↑","HTL ↓","Jual ↑","Jual ↓"];
 
-let data = [];
+const defaultData = [
+  {merk:"Daihatsu",model:"Sigra",tipe:"1.2 R AT",tahun:2024,htlMin:115,htlMax:121,jualMin:135,jualMax:145},
+  {merk:"Hyundai",model:"Stargazer",tipe:"1.5 Prime AT",tahun:2024,htlMin:202,htlMax:204,jualMin:220,jualMax:230}
+];
 
-// FORMAT INPUT
-function formatInputRupiah(input) {
-  let angka = input.value.replace(/\D/g, "");
-  input.value = angka.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-}
-
-function cleanNumber(str) {
-  return Number(str.replace(/\./g,""));
-}
-
-function formatRupiah(angka) {
-  return "Rp " + angka.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-}
-
-// TAMBAH DATA
-async function tambahData() {
-  let item = {
-    merk: merk.value,
-    type: type.value,
-    tahun: Number(tahun.value),
-    transmisi: transmisi.value,
-    beli: cleanNumber(beli.value),
-    jual: cleanNumber(jual.value),
-    biaya: cleanNumber(biaya.value)
-  };
-
-  await db.collection("mobil").add(item);
-}
-
-// LOAD REALTIME 🔥
-db.collection("mobil").onSnapshot(snapshot => {
-  data = [];
-  snapshot.forEach(doc => {
-    let d = doc.data();
-    d.id = doc.id;
-    data.push(d);
-  });
+onValue(mobilRef, (snap) => {
+  document.getElementById("syncDot").className = "sync-dot";
+  document.getElementById("syncText").textContent = "🟢 Sync realtime";
+  const data = snap.val();
+  if (!data) { defaultData.forEach(d => push(mobilRef, d)); return; }
+  allData = data;
+  buildChips();
   render();
+  renderStats();
+}, () => {
+  document.getElementById("syncDot").className = "sync-dot offline";
+  document.getElementById("syncText").textContent = "🔴 Offline";
 });
 
-// RENDER
-function render() {
-  let table = document.getElementById("dataTable");
-  table.innerHTML = "";
+function fmt(j){ return j >= 1000 ? (j/1000).toFixed(1)+"M" : j+" jt"; }
 
-  data.forEach(d => {
-    let profit = d.jual - d.beli - d.biaya;
+function fmtDate(iso){
+  try {
+    const d = new Date(iso);
+    return d.toLocaleDateString("id-ID",{day:"2-digit",month:"short",year:"numeric"}) +
+      " " + d.toLocaleTimeString("id-ID",{hour:"2-digit",minute:"2-digit"});
+  } catch(e){ return "-"; }
+}
 
-    table.innerHTML += `
-    <tr>
-      <td>${d.merk}</td>
-      <td>${d.type}</td>
-      <td>${d.tahun}</td>
-      <td>${d.transmisi}</td>
-      <td>${formatRupiah(d.beli)}</td>
-      <td>${formatRupiah(d.jual)}</td>
-      <td>${formatRupiah(profit)}</td>
-      <td>
-        <button class="btn-hapus" onclick="hapusData('${d.id}')">Hapus</button>
-      </td>
-    </tr>`;
+window.renderStats = function(){
+  const arr = Object.values(allData);
+  if(!arr.length) return;
+  const avg = Math.round(arr.reduce((s,d)=>s+(d.jualMin+d.jualMax)/2-(d.htlMin+d.htlMax)/2,0)/arr.length);
+  const merks = new Set(arr.map(d=>d.merk)).size;
+  document.getElementById("statsBar").innerHTML =
+    `<div class="stat-chip"><strong>${merks}</strong> merk</div>
+     <div class="stat-chip">Total <strong>${arr.length}</strong> unit</div>
+     <div class="stat-chip">Avg margin <strong>±${avg} jt</strong></div>`;
+};
+
+function buildChips(){
+  const arr = Object.values(allData);
+  const merks = [...new Set(arr.map(d=>d.merk))].sort();
+  const tahuns = [...new Set(arr.map(d=>d.tahun))].sort((a,b)=>b-a);
+  // Extract AT/MT/CVT keywords from tipe
+  const tipeKeys = [...new Set(arr.map(d=>{
+    const t = (d.tipe||"").toUpperCase();
+    if(t.includes("CVT")) return "CVT";
+    if(t.includes(" AT")) return "AT";
+    if(t.includes(" MT")) return "MT";
+    return null;
+  }).filter(Boolean))].sort();
+
+  // Filter models based on selected merks
+  const filteredModels = [...new Set(
+    arr.filter(d => selMerk.length===0 || selMerk.includes(d.merk)).map(d=>d.model)
+  )].sort();
+
+  document.getElementById("merkChips").innerHTML = merks.map(m=>
+    `<div class="chip ${selMerk.includes(m)?'active':''}" onclick="toggleFilter('merk','${m}')">${m}</div>`
+  ).join("");
+  document.getElementById("modelChips").innerHTML = filteredModels.map(m=>
+    `<div class="chip model ${selModel.includes(m)?'active':''}" onclick="toggleFilter('model','${m}')">${m}</div>`
+  ).join("");
+  document.getElementById("tahunChips").innerHTML = tahuns.map(t=>
+    `<div class="chip year ${selTahun.includes(t)?'active':''}" onclick="toggleFilter('tahun',${t})">${t}</div>`
+  ).join("");
+  document.getElementById("tipeChips").innerHTML = tipeKeys.map(t=>
+    `<div class="chip tipe ${selTipe.includes(t)?'active':''}" onclick="toggleFilter('tipe','${t}')">${t}</div>`
+  ).join("");
+
+  // Varian: full tipe string, filtered by selected merk + model
+  const filteredVarians = [...new Set(
+    arr.filter(d =>
+      (selMerk.length===0 || selMerk.includes(d.merk)) &&
+      (selModel.length===0 || selModel.includes(d.model))
+    ).map(d=>d.tipe||"").filter(Boolean)
+  )].sort();
+
+  document.getElementById("varianChips").innerHTML = filteredVarians.map(v=>
+    `<div class="chip varian ${selVarian.includes(v)?'active':''}" onclick="toggleFilter('varian','${v}')">${v}</div>`
+  ).join("");
+}
+
+window.toggleFilter = function(type, val){
+  if(type==="merk") { selMerk = selMerk.includes(val)?selMerk.filter(x=>x!==val):[...selMerk,val]; selModel=[]; }
+  else if(type==="model") selModel = selModel.includes(val)?selModel.filter(x=>x!==val):[...selModel,val];
+  else if(type==="tahun") selTahun = selTahun.includes(val)?selTahun.filter(x=>x!==val):[...selTahun,val];
+  else if(type==="tipe") selTipe = selTipe.includes(val)?selTipe.filter(x=>x!==val):[...selTipe,val];
+  else if(type==="varian") selVarian = selVarian.includes(val)?selVarian.filter(x=>x!==val):[...selVarian,val];
+  buildChips();
+  render();
+  const active = selMerk.length+selModel.length+selTahun.length+selTipe.length+selVarian.length;
+  const btn = document.getElementById("btnResetAll");
+  btn.className = active>0?"btn-reset-all visible":"btn-reset-all";
+};
+
+window.resetFilter = function(){
+  selMerk=[]; selModel=[]; selTahun=[]; selTipe=[]; selVarian=[];
+  buildChips(); render();
+  document.getElementById("btnResetAll").className="btn-reset-all";
+  showToast("🔄 Filter direset");
+};
+
+window.toggleSort = function(){
+  sortMode = (sortMode+1)%4;
+  document.getElementById("sortLabel").textContent = sortLabels[sortMode];
+  render();
+};
+
+window.render = function(){
+  const raw = document.getElementById("searchInput").value.toLowerCase().trim();
+  const words = raw ? raw.split(/\s+/) : [];
+  let entries = Object.entries(allData).filter(([,d])=>{
+    const haystack = [d.merk, d.model, d.tipe||"", String(d.tahun)].join(" ").toLowerCase();
+    const matchQ = words.every(w => haystack.includes(w));
+    const matchMerk = !selMerk.length || selMerk.includes(d.merk);
+    const matchModel = !selModel.length || selModel.includes(d.model);
+    const matchVarian = !selVarian.length || selVarian.includes(d.tipe||"");
+    const matchTahun = !selTahun.length || selTahun.includes(d.tahun);
+    const matchTipe = !selTipe.length || selTipe.some(t=>(d.tipe||"").toUpperCase().includes(t));
+    return matchQ && matchMerk && matchModel && matchTahun && matchTipe && matchVarian;
   });
-}
 
-// HAPUS
-async function hapusData(id) {
-  await db.collection("mobil").doc(id).delete();
-}
+  // Sort
+  entries.sort(([,a],[,b])=>{
+    if(sortMode===0) return a.htlMin-b.htlMin;
+    if(sortMode===1) return b.htlMin-a.htlMin;
+    if(sortMode===2) return a.jualMin-b.jualMin;
+    return b.jualMin-a.jualMin;
+  });
 
+  const total = Object.keys(allData).length;
+  const info = document.getElementById("resultInfo");
+  info.innerHTML = entries.length < total
+    ? `Menampilkan <strong>${entries.length}</strong> dari ${total} unit`
+    : `<strong>${total}</strong> unit`;
+
+  const container = document.getElementById("cardContainer");
+  if(!entries.length){
+    container.innerHTML='<div class="empty-state"><div class="icon">🔍</div><p>Tidak ada hasil</p></div>';return;
+  }
+  container.innerHTML = entries.map(([key,d],i)=>{
+    const mMin=d.jualMin-d.htlMax, mMax=d.jualMax-d.htlMin;
+    return `<div class="car-card" style="animation-delay:${i*0.04}s">
+      <div class="card-header">
+        <div><div class="car-brand">${d.merk} ${d.model}</div><div class="car-model">${d.tipe||""}</div></div>
+        <div class="car-year">${d.tahun}</div>
+      </div>
+      <div class="card-prices">
+        <div class="price-block">
+          <div class="price-label">🔨 HTL</div>
+          <div class="price-value htl">${fmt(d.htlMin)} – ${fmt(d.htlMax)}</div>
+          <div class="price-range">Rp ${(d.htlMin*1e6).toLocaleString("id-ID")}</div>
+        </div>
+        <div class="price-block">
+          <div class="price-label">💰 Harga Jual</div>
+          <div class="price-value jual">${fmt(d.jualMin)} – ${fmt(d.jualMax)}</div>
+          <div class="price-range">Rp ${(d.jualMin*1e6).toLocaleString("id-ID")}</div>
+        </div>
+      </div>
+      <div class="card-footer">
+        <div>
+          <div class="margin-label">Estimasi Margin</div>
+          <div class="margin-value">+${mMin} – +${mMax} jt</div>
+          ${d.updatedAt ? `<div class="updated-at">🕐 ${fmtDate(d.updatedAt)}</div>` : ''}
+        </div>
+        <div class="card-actions">
+          <button class="btn-icon" onclick="openEdit('${key}')">✏️</button>
+          <button class="btn-icon" onclick="deleteItem('${key}')">🗑️</button>
+        </div>
+      </div>
+    </div>`;
+  }).join("");
+};
+
+window.openModal = function(){
+  editKey=null;
+  document.getElementById("modalTitle").textContent="Tambah Mobil Baru";
+  ["fMerk","fModel","fTipe","fTahun","fHtlMin","fHtlMax","fJualMin","fJualMax"].forEach(id=>document.getElementById(id).value="");
+  document.getElementById("modalOverlay").classList.add("active");
+};
+
+window.openEdit = function(key){
+  editKey=key; const d=allData[key];
+  document.getElementById("modalTitle").textContent="Edit Data";
+  document.getElementById("fMerk").value=d.merk;
+  document.getElementById("fModel").value=d.model;
+  document.getElementById("fTipe").value=d.tipe||"";
+  document.getElementById("fTahun").value=d.tahun;
+  document.getElementById("fHtlMin").value=d.htlMin;
+  document.getElementById("fHtlMax").value=d.htlMax;
+  document.getElementById("fJualMin").value=d.jualMin;
+  document.getElementById("fJualMax").value=d.jualMax;
+  document.getElementById("modalOverlay").classList.add("active");
+};
+
+window.closeModal = function(){ document.getElementById("modalOverlay").classList.remove("active"); };
+window.closeOnOverlay = function(e){ if(e.target===document.getElementById("modalOverlay"))closeModal(); };
+
+window.saveData = function(){
+  const merk=document.getElementById("fMerk").value.trim();
+  const model=document.getElementById("fModel").value.trim();
+  const tipe=document.getElementById("fTipe").value.trim();
+  const tahun=parseInt(document.getElementById("fTahun").value)||2024;
+  const htlMin=parseFloat(document.getElementById("fHtlMin").value);
+  const htlMax=parseFloat(document.getElementById("fHtlMax").value)||htlMin;
+  const jualMin=parseFloat(document.getElementById("fJualMin").value);
+  const jualMax=parseFloat(document.getElementById("fJualMax").value)||jualMin;
+  if(!merk||!model||!htlMin||!jualMin){showToast("⚠️ Lengkapi data!");return;}
+
+  // Cek duplikat: Merk + Model + Tipe + Tahun harus unik
+  const dupKey = Object.entries(allData).find(([key, d]) =>
+    key !== editKey &&
+    d.merk.toLowerCase() === merk.toLowerCase() &&
+    d.model.toLowerCase() === model.toLowerCase() &&
+    (d.tipe||"").toLowerCase() === tipe.toLowerCase() &&
+    d.tahun === tahun
+  );
+  if(dupKey){
+    showToast("❌ Data sudah ada! Gunakan Edit.");
+    return;
+  }
+
+  const now = new Date().toISOString();
+  const item={merk,model,tipe,tahun,htlMin,htlMax,jualMin,jualMax,updatedAt:now};
+  if(editKey){set(ref(db,"mobil/"+editKey),item);showToast("✅ Data diupdate!");}
+  else{push(mobilRef,item);showToast("✅ Data ditambahkan!");}
+  closeModal();
+};
+
+window.deleteItem = function(key){
+  if(!confirm("Hapus data ini?"))return;
+  remove(ref(db,"mobil/"+key));
+  showToast("🗑️ Data dihapus");
+};
+
+window.exportCSV = function(){
+  const arr=Object.values(allData);
+  const h=["No","Merk","Model","Tipe","Tahun","HTL Min","HTL Max","Jual Min","Jual Max","Margin Min","Margin Max"];
+  const rows=arr.map((d,i)=>[i+1,d.merk,d.model,d.tipe,d.tahun,d.htlMin,d.htlMax,d.jualMin,d.jualMax,d.jualMin-d.htlMax,d.jualMax-d.htlMin]);
+  const csv=[h,...rows].map(r=>r.join(",")).join("\n");
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));
+  a.download="htl_jualan.csv";a.click();
+  showToast("📥 CSV diexport!");
+};
+
+window.showStats = function(){
+  const arr=Object.values(allData);
+  if(!arr.length){showToast("Belum ada data");return;}
+  const merks=[...new Set(arr.map(d=>d.merk))].length;
+  const avg=Math.round(arr.reduce((s,d)=>s+(d.jualMin+d.jualMax)/2-(d.htlMin+d.htlMax)/2,0)/arr.length);
+  alert(`📊 Statistik\n\nTotal Merk: ${merks}\nTotal Unit: ${arr.length}\nRata-rata Margin: ±${avg} jt\nHTL Terendah: ${Math.min(...arr.map(d=>d.htlMin))} jt\nHTL Tertinggi: ${Math.max(...arr.map(d=>d.htlMax))} jt\nJual Terendah: ${Math.min(...arr.map(d=>d.jualMin))} jt\nJual Tertinggi: ${Math.max(...arr.map(d=>d.jualMax))} jt`);
+};
+
+window.showToast = function(msg){
+  const t=document.getElementById("toast");
+  t.textContent=msg;t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"),2500);
+};
+
+if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
 </script>
-
 </body>
 </html>

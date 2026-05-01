@@ -1,0 +1,1507 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#FFFFFF">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="HTL & Jualan">
+<link rel="manifest" href="manifest.json">
+<title>HTL & Jualan Mobil</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F5F7FA;--surface:#FFFFFF;--card:#FFFFFF;--accent:#1A56DB;--accent2:#E3342F;--green:#0D9F6E;
+  --text:#1A202C;--muted:#718096;--border:#E2E8F0;--radius:14px;--shadow:0 2px 8px rgba(0,0,0,0.07);
+  --warning:#F59E0B;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:"Inter",sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+
+header{background:#FFFFFF;padding:18px 20px 0;position:sticky;top:0;z-index:100;border-bottom:1px solid var(--border);box-shadow:0 1px 6px rgba(0,0,0,0.06)}
+.header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.logo{font-family:"Inter",sans-serif;font-weight:900;font-size:21px;color:var(--accent);letter-spacing:-0.5px}
+.logo span{font-size:11px;display:block;font-weight:400;color:var(--muted);margin-top:-1px;letter-spacing:0}
+.btn-add{background:var(--accent);color:#fff;border:none;border-radius:10px;padding:10px 18px;font-family:"Inter",sans-serif;font-weight:700;font-size:13px;cursor:pointer;box-shadow:0 2px 8px rgba(26,86,219,0.25)}
+.btn-add:active{transform:scale(0.96);opacity:0.9}
+.search-wrap{position:relative;margin-bottom:12px}
+.search-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:14px}
+input[type="search"]{width:100%;background:#F1F5F9;border:1.5px solid var(--border);border-radius:10px;padding:11px 16px 11px 40px;color:var(--text);font-family:"Inter",sans-serif;font-size:14px;outline:none;-webkit-appearance:none}
+input[type="search"]:focus{border-color:var(--accent);background:#fff}
+input[type="search"]::placeholder{color:#A0AEC0}
+.stats-bar{display:flex;gap:8px;overflow-x:auto;padding-bottom:14px;scrollbar-width:none}
+.stats-bar::-webkit-scrollbar{display:none}
+.stat-chip{background:#EBF4FF;border:none;border-radius:8px;padding:5px 12px;font-size:12px;white-space:nowrap;color:var(--accent);flex-shrink:0;font-weight:600}
+
+main{padding:16px 16px 100px}
+
+/* PAGE TOGGLE */
+.page{display:none}
+.page.active{display:block}
+
+/* FILTER */
+.filter-section{margin-bottom:14px;background:#fff;border-radius:12px;padding:14px;box-shadow:var(--shadow);border:1px solid var(--border)}
+.filter-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.filter-title{font-family:"Inter",sans-serif;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.btn-reset-all{background:none;border:none;color:var(--accent2);font-size:12px;font-family:"Inter",sans-serif;cursor:pointer;padding:0;display:none;font-weight:600}
+.btn-reset-all.visible{display:block}
+.filter-group{margin-bottom:8px}
+.filter-group-label{font-size:10px;color:var(--muted);margin-bottom:6px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px}
+.chips-row{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.chips-row::-webkit-scrollbar{display:none}
+.chip{background:#F1F5F9;border:1.5px solid var(--border);border-radius:8px;padding:5px 12px;font-size:12px;color:var(--muted);cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all 0.15s;font-family:"Inter",sans-serif;font-weight:500}
+.chip:active{transform:scale(0.95)}
+.chip.active{background:#EBF4FF;border-color:var(--accent);color:var(--accent);font-weight:700}
+.chip.year.active{background:#FFF8E1;border-color:#F59E0B;color:#B45309}
+.chip.tipe.active{background:#FEF2F2;border-color:var(--accent2);color:var(--accent2)}
+.chip.model.active{background:#F0FDF4;border-color:#16A34A;color:#16A34A}
+.chip.varian.active{background:#F5F3FF;border-color:#7C3AED;color:#7C3AED}
+
+/* RESULT */
+.result-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.result-info{font-size:12px;color:var(--muted)}
+.result-info strong{color:var(--text);font-weight:700}
+.sort-btn{font-size:12px;color:var(--accent);background:#EBF4FF;border:none;border-radius:8px;padding:5px 12px;cursor:pointer;font-family:"Inter",sans-serif;font-weight:600}
+.sort-btn:active{background:#DBEAFE}
+
+/* CARDS */
+.car-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);margin-bottom:10px;overflow:hidden;animation:fadeUp 0.22s ease both;box-shadow:var(--shadow)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.card-header{display:flex;align-items:center;justify-content:space-between;padding:13px 16px 10px;border-bottom:1px solid var(--border)}
+.car-brand{font-family:"Inter",sans-serif;font-weight:800;font-size:16px;color:var(--text);letter-spacing:-0.3px}
+.car-model{font-size:12px;color:var(--muted);margin-top:2px}
+.car-year{background:#FFF8E1;color:#B45309;border-radius:6px;padding:3px 9px;font-size:11px;font-weight:700;font-family:"Inter",sans-serif;border:1px solid #FDE68A}
+.card-prices{display:grid;grid-template-columns:1fr 1fr}
+.price-block{padding:11px 16px}
+.price-block:first-child{border-right:1px solid var(--border)}
+.price-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px;font-weight:600}
+.price-value{font-family:"Inter",sans-serif;font-weight:800;font-size:14px}
+.price-value.htl{color:var(--accent2)}
+.price-value.jual{color:var(--green)}
+.price-range{font-size:10px;color:#A0AEC0;margin-top:2px}
+.card-footer{padding:9px 16px;background:#F8FAFC;display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--border)}
+.margin-label{font-size:11px;color:var(--muted)}
+.margin-value{font-family:"Inter",sans-serif;font-weight:800;font-size:13px;color:var(--accent)}
+.card-actions{display:flex;gap:6px}
+.btn-icon{background:#F1F5F9;border:1px solid var(--border);border-radius:8px;padding:5px 10px;color:var(--muted);font-size:13px;cursor:pointer;transition:all 0.15s}
+.btn-icon:active{background:#E2E8F0}
+.updated-at{font-size:10px;color:#A0AEC0;margin-top:3px;font-weight:400}
+.empty-state{text-align:center;padding:50px 20px;color:var(--muted)}
+.empty-state .icon{font-size:44px;margin-bottom:14px}
+.loading{text-align:center;padding:40px;color:var(--muted)}
+.spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 14px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.sync-status{font-size:11px;color:var(--muted);display:flex;align-items:center;margin-bottom:12px;gap:6px}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:#0D9F6E;animation:pulse 2s infinite;flex-shrink:0}
+.sync-dot.offline{background:var(--accent2);animation:none}
+.sync-dot.connecting{background:#F59E0B}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,0.5);z-index:200;align-items:flex-end;backdrop-filter:blur(3px)}
+.modal-overlay.active{display:flex}
+.modal{background:#fff;border-radius:20px 20px 0 0;padding:22px 20px 40px;width:100%;max-height:92vh;overflow-y:auto;animation:slideUp 0.28s cubic-bezier(0.34,1.56,0.64,1)}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-handle{width:36px;height:4px;background:#E2E8F0;border-radius:2px;margin:0 auto 18px}
+.modal-title{font-family:"Inter",sans-serif;font-size:18px;font-weight:800;margin-bottom:20px;color:var(--accent)}
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:7px}
+.form-group input{width:100%;background:#F8FAFC;border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;color:var(--text);font-family:"Inter",sans-serif;font-size:15px;outline:none;-webkit-appearance:none}
+.form-group input:focus{border-color:var(--accent);background:#fff;box-shadow:0 0 0 3px rgba(26,86,219,0.08)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.hint{font-size:11px;color:#A0AEC0;margin-top:4px}
+.modal-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px}
+.btn-cancel{background:#F1F5F9;border:none;border-radius:10px;padding:13px;color:var(--muted);font-family:"Inter",sans-serif;font-weight:700;font-size:14px;cursor:pointer}
+.btn-save{background:var(--accent);border:none;border-radius:10px;padding:13px;color:#fff;font-family:"Inter",sans-serif;font-weight:700;font-size:14px;cursor:pointer;box-shadow:0 2px 8px rgba(26,86,219,0.3)}
+
+.toast{position:fixed;bottom:84px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--text);color:#fff;padding:11px 22px;border-radius:10px;font-family:"Inter",sans-serif;font-weight:700;font-size:13px;opacity:0;transition:all 0.25s;z-index:300;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,0.15)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--border);display:flex;justify-content:space-around;padding:10px 0 20px;box-shadow:0 -2px 8px rgba(0,0,0,0.06);z-index:90}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;color:var(--muted);font-weight:600;cursor:pointer;padding:0 14px}
+.nav-item.active{color:var(--accent)}
+.nav-item .nav-icon{font-size:20px}
+
+/* ============== SCREENING PAGE ============== */
+.section-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:12px;box-shadow:var(--shadow)}
+.section-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:10px}
+
+.api-key-row{display:flex;gap:8px;align-items:center}
+.api-key-row input{flex:1;background:#F8FAFC;border:1.5px solid var(--border);border-radius:10px;padding:11px 14px;color:var(--text);font-family:"Inter",sans-serif;font-size:13px;outline:none;-webkit-appearance:none}
+.api-key-row input:focus{border-color:var(--accent);background:#fff}
+.btn-save-key{background:var(--accent);color:#fff;border:none;border-radius:10px;padding:11px 16px;font-family:"Inter",sans-serif;font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap}
+.btn-save-key:active{transform:scale(0.96)}
+.key-status{font-size:11px;margin-top:6px;display:none}
+.key-status.ok{color:var(--green)}
+.key-status.err{color:var(--accent2)}
+.key-help{font-size:11px;color:var(--muted);margin-top:6px}
+.key-help a{color:var(--accent);font-weight:600;text-decoration:none}
+
+.upload-zone{border:2px dashed var(--border);border-radius:12px;padding:32px 20px;text-align:center;cursor:pointer;transition:all 0.2s;background:#F8FAFC;position:relative;overflow:hidden}
+.upload-zone:hover,.upload-zone.drag-over{border-color:var(--accent);background:#EBF4FF}
+.upload-zone input[type="file"]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.upload-icon{font-size:36px;margin-bottom:10px;display:block}
+.upload-title{font-size:15px;font-weight:700;margin-bottom:4px;color:var(--text)}
+.upload-sub{font-size:12px;color:var(--muted)}
+.upload-types{display:flex;gap:6px;justify-content:center;margin-top:12px;flex-wrap:wrap}
+.type-badge{background:#fff;border:1px solid var(--border);padding:3px 8px;border-radius:6px;font-size:10px;color:var(--muted);font-weight:600}
+
+.preview-area{display:none;margin-top:12px;border-radius:12px;overflow:hidden;border:1px solid var(--border);background:#fff}
+.preview-area img{width:100%;max-height:300px;object-fit:contain;background:#F8FAFC;display:block}
+.preview-header{padding:10px 14px;border-bottom:1px solid var(--border);font-size:12px;color:var(--muted);display:flex;align-items:center;gap:8px}
+.preview-header .filename{color:var(--accent);font-weight:700;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.preview-header .ready{color:var(--green);font-size:11px;font-weight:600}
+
+.analyze-btn{width:100%;padding:14px;background:var(--accent);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:800;font-family:"Inter",sans-serif;cursor:pointer;transition:all 0.2s;display:none;align-items:center;justify-content:center;gap:8px;margin-top:12px;box-shadow:0 2px 8px rgba(26,86,219,0.3)}
+.analyze-btn.visible{display:flex}
+.analyze-btn:active{transform:scale(0.98)}
+.analyze-btn:disabled{opacity:0.5;cursor:not-allowed}
+
+.error-box{display:none;background:#FEF2F2;border:1px solid #FECACA;border-radius:10px;padding:12px 14px;margin-top:10px;font-size:13px;color:var(--accent2);font-weight:600}
+.error-box.show{display:block}
+
+.loading-screen{display:none;text-align:center;padding:40px 20px}
+.loading-screen.show{display:block}
+.loading-text{font-size:13px;color:var(--muted);margin-top:8px}
+.loading-text strong{color:var(--accent)}
+
+.results-section{display:none}
+.results-section.show{display:block}
+.results-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.results-title{font-size:17px;font-weight:800;color:var(--text)}
+.btn-reset-screen{background:#F1F5F9;border:1px solid var(--border);color:var(--text);padding:7px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:"Inter",sans-serif}
+.btn-reset-screen:active{background:#E2E8F0}
+
+.stats-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px}
+.provider-info{font-size:12px;padding:8px 12px;border-radius:8px;margin-bottom:10px;font-weight:600;border:1px solid;display:flex;align-items:center;gap:6px}
+.provider-info.gemini{background:#EBF4FF;border-color:#DBEAFE;color:var(--accent)}
+.provider-info.claude{background:#FEF3C7;border-color:#FDE68A;color:#92400E}
+.stat-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center;box-shadow:var(--shadow)}
+.stat-card.layak{border-color:#A7F3D0;background:#F0FDF4}
+.stat-card.skip{border-color:#FECACA;background:#FEF2F2}
+.stat-card.total{border-color:#FDE68A;background:#FFFBEB}
+.stat-num{font-size:24px;font-weight:800;font-family:"Inter",sans-serif}
+.stat-card.layak .stat-num{color:var(--green)}
+.stat-card.skip .stat-num{color:var(--accent2)}
+.stat-card.total .stat-num{color:#B45309}
+.stat-label{font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-top:2px}
+
+.lot-grid{display:flex;flex-direction:column;gap:10px}
+.lot-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;animation:fadeUp 0.22s ease both;box-shadow:var(--shadow)}
+.lot-card.good{border-left:4px solid var(--green)}
+.lot-card.thin{border-left:4px solid var(--warning)}
+.lot-card.minus{border-left:4px solid var(--accent2)}
+.lot-card.unknown{border-left:4px solid var(--muted)}
+
+.lot-card-header{display:flex;align-items:center;padding:13px 14px;gap:10px;flex-wrap:wrap}
+.lot-number{background:#F1F5F9;border:1px solid var(--border);padding:4px 10px;border-radius:8px;font-size:12px;font-weight:700;color:var(--muted);white-space:nowrap;font-family:"Inter",sans-serif}
+.lot-car-info{flex:1;min-width:140px}
+.lot-car-name{font-size:15px;font-weight:800;color:var(--text);letter-spacing:-0.2px}
+.lot-car-detail{font-size:11px;color:var(--muted);margin-top:2px}
+.lot-status{padding:5px 11px;border-radius:8px;font-size:11px;font-weight:700;white-space:nowrap;font-family:"Inter",sans-serif}
+.lot-status.good{background:#D1FAE5;color:#065F46;border:1px solid #A7F3D0}
+.lot-status.thin{background:#FEF3C7;color:#92400E;border:1px solid #FDE68A}
+.lot-status.minus{background:#FEE2E2;color:#991B1B;border:1px solid #FECACA}
+.lot-status.unknown{background:#F1F5F9;color:var(--muted);border:1px solid var(--border)}
+
+.lot-meta{padding:6px 14px 8px;font-size:11px;color:var(--muted);font-weight:500;border-top:1px solid var(--border);background:#F8FAFC;line-height:1.5}
+
+.lot-card-body{padding:10px 14px 12px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.price-item{background:#F8FAFC;border-radius:8px;padding:8px 10px;border:1px solid var(--border)}
+.price-item-label{font-size:9px;color:var(--muted);letter-spacing:0.5px;text-transform:uppercase;margin-bottom:3px;font-weight:700}
+.price-item-value{font-size:13px;font-weight:800;font-family:"Inter",sans-serif}
+.price-item-value.lelang{color:#B45309}
+.price-item-value.batas{color:var(--muted)}
+.price-item-value.jual{color:var(--green)}
+.price-item-value.htl{color:var(--accent2)}
+.price-item-value.margin.good{color:var(--green)}
+.price-item-value.margin.thin{color:#B45309}
+.price-item-value.margin.minus{color:var(--accent2)}
+.price-item-value.selisih.plus{color:var(--green)}
+.price-item-value.selisih.minus{color:var(--accent2)}
+.price-item.full{grid-column:1/-1}
+
+.lot-note{padding:10px 14px;font-size:12px;color:var(--muted);border-top:1px solid var(--border);background:#F8FAFC;font-weight:500}
+.lot-note.match-valid{color:#065F46;background:#F0FDF4;border-top-color:#A7F3D0;font-weight:600}
+.lot-note.match-invalid{color:#991B1B;background:#FEF2F2;border-top-color:#FECACA;font-weight:600}
+.lot-note.not-found{color:#B45309;background:#FFFBEB}
+
+.db-info{font-size:11px;color:var(--muted);margin-bottom:10px;padding:8px 12px;background:#EBF4FF;border-radius:8px;border:1px solid #DBEAFE}
+.db-info strong{color:var(--accent);font-weight:700}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-top">
+    <div class="logo" id="appLogo">HTL & Jualan<span>Data Harga Mobil</span></div>
+    <button class="btn-add" id="btnAdd" onclick="openModal()">＋ Tambah</button>
+  </div>
+  <div class="search-wrap" id="searchWrap">
+    <span class="search-icon">🔍</span>
+    <input type="search" id="searchInput" placeholder="Cari merk atau model..." oninput="render()">
+  </div>
+  <div class="stats-bar" id="statsBar"></div>
+</header>
+
+<main>
+  <div class="sync-status">
+    <span class="sync-dot connecting" id="syncDot"></span>
+    <span id="syncText">Menghubungkan...</span>
+  </div>
+
+  <!-- ============ PAGE 1: DAFTAR ============ -->
+  <div class="page active" id="pageDaftar">
+    <div class="filter-section">
+      <div class="filter-row">
+        <div class="filter-title">Filter</div>
+        <button class="btn-reset-all" id="btnResetAll" onclick="resetFilter()">✕ Reset filter</button>
+      </div>
+      <div class="filter-group">
+        <div class="filter-group-label">Merk</div>
+        <div class="chips-row" id="merkChips"></div>
+      </div>
+      <div class="filter-group">
+        <div class="filter-group-label">Model</div>
+        <div class="chips-row" id="modelChips"></div>
+      </div>
+      <div class="filter-group">
+        <div class="filter-group-label">Tipe / Varian</div>
+        <div class="chips-row" id="varianChips"></div>
+      </div>
+      <div class="filter-group">
+        <div class="filter-group-label">Tahun</div>
+        <div class="chips-row" id="tahunChips"></div>
+      </div>
+      <div class="filter-group">
+        <div class="filter-group-label">Transmisi</div>
+        <div class="chips-row" id="tipeChips"></div>
+      </div>
+    </div>
+
+    <div class="result-bar">
+      <div class="result-info" id="resultInfo"></div>
+      <button class="sort-btn" onclick="toggleSort()">⇅ <span id="sortLabel">HTL ↑</span></button>
+    </div>
+
+    <div id="cardContainer"><div class="loading"><div class="spinner"></div>Memuat data...</div></div>
+  </div>
+
+  <!-- ============ PAGE 2: SCREENING ============ -->
+  <div class="page" id="pageScreening">
+    <div class="db-info" id="dbInfo">📚 Database referensi: <strong>0</strong> mobil · <em>memuat...</em></div>
+
+    <div class="section-card">
+      <div class="section-label">🌟 API Key Utama — Google Gemini</div>
+      <div class="api-key-row">
+        <input type="password" id="apiKeyInput" placeholder="AIzaSy...">
+        <button class="btn-save-key" onclick="saveKey()">Simpan</button>
+      </div>
+      <div class="key-status" id="keyStatus"></div>
+      <div class="key-help">
+        Gratis · Daftar di <a href="https://aistudio.google.com" target="_blank">aistudio.google.com</a> → Get API Key
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-label">🛡️ API Key Cadangan — Claude Haiku <span style="color:var(--muted);font-weight:500;text-transform:none;letter-spacing:0">(opsional)</span></div>
+      <div class="api-key-row">
+        <input type="password" id="claudeKeyInput" placeholder="sk-ant-...">
+        <button class="btn-save-key" onclick="saveClaudeKey()">Simpan</button>
+      </div>
+      <div class="key-status" id="claudeKeyStatus"></div>
+      <div class="key-help">
+        Backup saat Gemini overload · Berbayar (~Rp 165/scan) · Daftar di <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-label">Upload Daftar Lot Lelang</div>
+      <div class="upload-zone" id="uploadZone">
+        <input type="file" id="fileInput" accept="image/*,.pdf">
+        <span class="upload-icon">📎</span>
+        <div class="upload-title">Upload File Lot Lelang</div>
+        <div class="upload-sub">Tap untuk pilih file (atau drag & drop)</div>
+        <div class="upload-types">
+          <span class="type-badge">JPG</span>
+          <span class="type-badge">PNG</span>
+          <span class="type-badge">PDF</span>
+          <span class="type-badge">WEBP</span>
+        </div>
+      </div>
+
+      <div class="preview-area" id="previewArea">
+        <div class="preview-header">
+          <span>📄</span>
+          <span class="filename" id="previewFilename"></span>
+          <span class="ready">siap dianalisis</span>
+        </div>
+        <img id="previewImg" src="" alt="Preview">
+      </div>
+
+      <div class="error-box" id="errorBox"></div>
+
+      <button class="analyze-btn" id="analyzeBtn" onclick="analyzeLot()">
+        <span>⚡</span> Analisis Sekarang
+      </button>
+    </div>
+
+    <div class="loading-screen" id="loadingSection">
+      <div class="spinner"></div>
+      <div class="loading-text">AI sedang membaca lot lelang...</div>
+      <div class="loading-text" style="font-size:11px;margin-top:4px">Mencocokkan dengan database HTL & harga jual</div>
+    </div>
+
+    <div class="results-section" id="resultsSection">
+      <div class="results-header">
+        <div class="results-title">Hasil Screening</div>
+        <button class="btn-reset-screen" onclick="resetScreening()">↺ Upload Baru</button>
+      </div>
+
+      <div class="provider-info" id="providerInfo" style="display:none"></div>
+
+      <div class="stats-row">
+        <div class="stat-card total">
+          <div class="stat-num" id="statTotal">0</div>
+          <div class="stat-label">Total Lot</div>
+        </div>
+        <div class="stat-card layak">
+          <div class="stat-num" id="statLayak">0</div>
+          <div class="stat-label">📊 Ada Ref</div>
+        </div>
+        <div class="stat-card skip">
+          <div class="stat-num" id="statSkip">0</div>
+          <div class="stat-label">🔍 Tak Ada Ref</div>
+        </div>
+      </div>
+
+      <div class="lot-grid" id="lotGrid"></div>
+    </div>
+  </div>
+</main>
+
+<!-- MODAL TAMBAH/EDIT MOBIL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeOnOverlay(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="modalTitle">Tambah Mobil Baru</div>
+    <div class="form-group"><label>Merk</label><input type="text" id="fMerk" placeholder="Daihatsu, Toyota..."></div>
+    <div class="form-row">
+      <div class="form-group"><label>Model</label><input type="text" id="fModel" placeholder="Sigra..."></div>
+      <div class="form-group"><label>Tahun</label><input type="number" id="fTahun" placeholder="2024"></div>
+    </div>
+    <div class="form-group"><label>Tipe / Varian</label><input type="text" id="fTipe" placeholder="1.2 R AT..."></div>
+    <div class="form-group">
+      <label>HTL (juta)</label>
+      <div class="form-row">
+        <div><input type="number" id="fHtlMin" placeholder="Min"><div class="hint">Min</div></div>
+        <div><input type="number" id="fHtlMax" placeholder="Max"><div class="hint">Max</div></div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Harga Jual (juta)</label>
+      <div class="form-row">
+        <div><input type="number" id="fJualMin" placeholder="Min"><div class="hint">Min</div></div>
+        <div><input type="number" id="fJualMax" placeholder="Max"><div class="hint">Max</div></div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Batal</button>
+      <button class="btn-save" onclick="saveData()">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="bottom-nav">
+  <div class="nav-item active" data-page="daftar" onclick="switchPage('daftar')"><span class="nav-icon">🚗</span>Daftar</div>
+  <div class="nav-item" data-page="screening" onclick="switchPage('screening')"><span class="nav-icon">🔍</span>Screening</div>
+  <div class="nav-item" onclick="showStats()"><span class="nav-icon">📊</span>Statistik</div>
+  <div class="nav-item" onclick="exportCSV()"><span class="nav-icon">📥</span>Export</div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, onValue, push, set, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyB67bDvGa6XAM59w1PFUONsFEQgKcxVyuM",
+  authDomain: "htldanjual.firebaseapp.com",
+  databaseURL: "https://htldanjual-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "htldanjual",
+  storageBucket: "htldanjual.firebasestorage.app",
+  messagingSenderId: "978713261279",
+  appId: "1:978713261279:web:660f05b255e9beffe3656a",
+  measurementId: "G-RT8NM3TWDZ"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const mobilRef = ref(db, "mobil");
+
+let allData = {};
+let editKey = null;
+let selMerk = [];
+let selTahun = [];
+let selTipe = [];
+let selModel = [];
+let selVarian = [];
+let sortMode = 0;
+const sortLabels = ["HTL ↑","HTL ↓","Jual ↑","Jual ↓"];
+
+const defaultData = [
+  {merk:"Daihatsu",model:"Sigra",tipe:"1.2 R AT",tahun:2024,htlMin:115,htlMax:121,jualMin:135,jualMax:145},
+  {merk:"Hyundai",model:"Stargazer",tipe:"1.5 Prime AT",tahun:2024,htlMin:202,htlMax:204,jualMin:220,jualMax:230}
+];
+
+onValue(mobilRef, (snap) => {
+  document.getElementById("syncDot").className = "sync-dot";
+  document.getElementById("syncText").textContent = "🟢 Sync realtime";
+  const data = snap.val();
+  if (!data) { defaultData.forEach(d => push(mobilRef, d)); return; }
+  allData = data;
+  buildChips();
+  render();
+  renderStats();
+  updateDbInfo();
+}, () => {
+  document.getElementById("syncDot").className = "sync-dot offline";
+  document.getElementById("syncText").textContent = "🔴 Offline";
+});
+
+function fmt(j){ return j >= 1000 ? (j/1000).toFixed(1)+"M" : j+" jt"; }
+
+function fmtDate(iso){
+  try {
+    const d = new Date(iso);
+    return d.toLocaleDateString("id-ID",{day:"2-digit",month:"short",year:"numeric"}) +
+      " " + d.toLocaleTimeString("id-ID",{hour:"2-digit",minute:"2-digit"});
+  } catch(e){ return "-"; }
+}
+
+window.renderStats = function(){
+  const arr = Object.values(allData);
+  if(!arr.length) return;
+  const avg = Math.round(arr.reduce((s,d)=>s+(d.jualMin+d.jualMax)/2-(d.htlMin+d.htlMax)/2,0)/arr.length);
+  const merks = new Set(arr.map(d=>d.merk)).size;
+  document.getElementById("statsBar").innerHTML =
+    `<div class="stat-chip"><strong>${merks}</strong> merk</div>
+     <div class="stat-chip">Total <strong>${arr.length}</strong> unit</div>
+     <div class="stat-chip">Avg margin <strong>±${avg} jt</strong></div>`;
+};
+
+function updateDbInfo(){
+  const n = Object.keys(allData).length;
+  const el = document.getElementById("dbInfo");
+  if(el) el.innerHTML = `📚 Database referensi: <strong>${n}</strong> mobil · realtime dari HTL & Jualan`;
+}
+
+function buildChips(){
+  const arr = Object.values(allData);
+  const merks = [...new Set(arr.map(d=>d.merk))].sort();
+  const tahuns = [...new Set(arr.map(d=>d.tahun))].sort((a,b)=>b-a);
+  const tipeKeys = [...new Set(arr.map(d=>{
+    const t = (d.tipe||"").toUpperCase();
+    if(t.includes("CVT")) return "CVT";
+    if(t.includes(" AT")) return "AT";
+    if(t.includes(" MT")) return "MT";
+    return null;
+  }).filter(Boolean))].sort();
+
+  const filteredModels = [...new Set(
+    arr.filter(d => selMerk.length===0 || selMerk.includes(d.merk)).map(d=>d.model)
+  )].sort();
+
+  document.getElementById("merkChips").innerHTML = merks.map(m=>
+    `<div class="chip ${selMerk.includes(m)?'active':''}" onclick="toggleFilter('merk','${m}')">${m}</div>`
+  ).join("");
+  document.getElementById("modelChips").innerHTML = filteredModels.map(m=>
+    `<div class="chip model ${selModel.includes(m)?'active':''}" onclick="toggleFilter('model','${m}')">${m}</div>`
+  ).join("");
+  document.getElementById("tahunChips").innerHTML = tahuns.map(t=>
+    `<div class="chip year ${selTahun.includes(t)?'active':''}" onclick="toggleFilter('tahun',${t})">${t}</div>`
+  ).join("");
+  document.getElementById("tipeChips").innerHTML = tipeKeys.map(t=>
+    `<div class="chip tipe ${selTipe.includes(t)?'active':''}" onclick="toggleFilter('tipe','${t}')">${t}</div>`
+  ).join("");
+
+  const filteredVarians = [...new Set(
+    arr.filter(d =>
+      (selMerk.length===0 || selMerk.includes(d.merk)) &&
+      (selModel.length===0 || selModel.includes(d.model))
+    ).map(d=>d.tipe||"").filter(Boolean)
+  )].sort();
+
+  document.getElementById("varianChips").innerHTML = filteredVarians.map(v=>
+    `<div class="chip varian ${selVarian.includes(v)?'active':''}" onclick="toggleFilter('varian','${v}')">${v}</div>`
+  ).join("");
+}
+
+window.toggleFilter = function(type, val){
+  if(type==="merk") { selMerk = selMerk.includes(val)?selMerk.filter(x=>x!==val):[...selMerk,val]; selModel=[]; }
+  else if(type==="model") selModel = selModel.includes(val)?selModel.filter(x=>x!==val):[...selModel,val];
+  else if(type==="tahun") selTahun = selTahun.includes(val)?selTahun.filter(x=>x!==val):[...selTahun,val];
+  else if(type==="tipe") selTipe = selTipe.includes(val)?selTipe.filter(x=>x!==val):[...selTipe,val];
+  else if(type==="varian") selVarian = selVarian.includes(val)?selVarian.filter(x=>x!==val):[...selVarian,val];
+  buildChips();
+  render();
+  const active = selMerk.length+selModel.length+selTahun.length+selTipe.length+selVarian.length;
+  const btn = document.getElementById("btnResetAll");
+  btn.className = active>0?"btn-reset-all visible":"btn-reset-all";
+};
+
+window.resetFilter = function(){
+  selMerk=[]; selModel=[]; selTahun=[]; selTipe=[]; selVarian=[];
+  buildChips(); render();
+  document.getElementById("btnResetAll").className="btn-reset-all";
+  showToast("🔄 Filter direset");
+};
+
+window.toggleSort = function(){
+  sortMode = (sortMode+1)%4;
+  document.getElementById("sortLabel").textContent = sortLabels[sortMode];
+  render();
+};
+
+window.render = function(){
+  const raw = document.getElementById("searchInput").value.toLowerCase().trim();
+  const words = raw ? raw.split(/\s+/) : [];
+  let entries = Object.entries(allData).filter(([,d])=>{
+    const haystack = [d.merk, d.model, d.tipe||"", String(d.tahun)].join(" ").toLowerCase();
+    const matchQ = words.every(w => haystack.includes(w));
+    const matchMerk = !selMerk.length || selMerk.includes(d.merk);
+    const matchModel = !selModel.length || selModel.includes(d.model);
+    const matchVarian = !selVarian.length || selVarian.includes(d.tipe||"");
+    const matchTahun = !selTahun.length || selTahun.includes(d.tahun);
+    const matchTipe = !selTipe.length || selTipe.some(t=>(d.tipe||"").toUpperCase().includes(t));
+    return matchQ && matchMerk && matchModel && matchTahun && matchTipe && matchVarian;
+  });
+
+  entries.sort(([,a],[,b])=>{
+    if(sortMode===0) return a.htlMin-b.htlMin;
+    if(sortMode===1) return b.htlMin-a.htlMin;
+    if(sortMode===2) return a.jualMin-b.jualMin;
+    return b.jualMin-a.jualMin;
+  });
+
+  const total = Object.keys(allData).length;
+  const info = document.getElementById("resultInfo");
+  info.innerHTML = entries.length < total
+    ? `Menampilkan <strong>${entries.length}</strong> dari ${total} unit`
+    : `<strong>${total}</strong> unit`;
+
+  const container = document.getElementById("cardContainer");
+  if(!entries.length){
+    container.innerHTML='<div class="empty-state"><div class="icon">🔍</div><p>Tidak ada hasil</p></div>';return;
+  }
+  container.innerHTML = entries.map(([key,d],i)=>{
+    const mMin=d.jualMin-d.htlMax, mMax=d.jualMax-d.htlMin;
+    return `<div class="car-card" style="animation-delay:${i*0.04}s">
+      <div class="card-header">
+        <div><div class="car-brand">${d.merk} ${d.model}</div><div class="car-model">${d.tipe||""}</div></div>
+        <div class="car-year">${d.tahun}</div>
+      </div>
+      <div class="card-prices">
+        <div class="price-block">
+          <div class="price-label">🔨 HTL</div>
+          <div class="price-value htl">${fmt(d.htlMin)} – ${fmt(d.htlMax)}</div>
+          <div class="price-range">Rp ${(d.htlMin*1e6).toLocaleString("id-ID")}</div>
+        </div>
+        <div class="price-block">
+          <div class="price-label">💰 Harga Jual</div>
+          <div class="price-value jual">${fmt(d.jualMin)} – ${fmt(d.jualMax)}</div>
+          <div class="price-range">Rp ${(d.jualMin*1e6).toLocaleString("id-ID")}</div>
+        </div>
+      </div>
+      <div class="card-footer">
+        <div>
+          <div class="margin-label">Estimasi Margin</div>
+          <div class="margin-value">+${mMin} – +${mMax} jt</div>
+          ${d.updatedAt ? `<div class="updated-at">🕐 ${fmtDate(d.updatedAt)}</div>` : ''}
+        </div>
+        <div class="card-actions">
+          <button class="btn-icon" onclick="openEdit('${key}')">✏️</button>
+          <button class="btn-icon" onclick="deleteItem('${key}')">🗑️</button>
+        </div>
+      </div>
+    </div>`;
+  }).join("");
+};
+
+window.openModal = function(){
+  editKey=null;
+  document.getElementById("modalTitle").textContent="Tambah Mobil Baru";
+  ["fMerk","fModel","fTipe","fTahun","fHtlMin","fHtlMax","fJualMin","fJualMax"].forEach(id=>document.getElementById(id).value="");
+  document.getElementById("modalOverlay").classList.add("active");
+};
+
+window.openEdit = function(key){
+  editKey=key; const d=allData[key];
+  document.getElementById("modalTitle").textContent="Edit Data";
+  document.getElementById("fMerk").value=d.merk;
+  document.getElementById("fModel").value=d.model;
+  document.getElementById("fTipe").value=d.tipe||"";
+  document.getElementById("fTahun").value=d.tahun;
+  document.getElementById("fHtlMin").value=d.htlMin;
+  document.getElementById("fHtlMax").value=d.htlMax;
+  document.getElementById("fJualMin").value=d.jualMin;
+  document.getElementById("fJualMax").value=d.jualMax;
+  document.getElementById("modalOverlay").classList.add("active");
+};
+
+window.closeModal = function(){ document.getElementById("modalOverlay").classList.remove("active"); };
+window.closeOnOverlay = function(e){ if(e.target===document.getElementById("modalOverlay"))closeModal(); };
+
+window.saveData = function(){
+  const merk=document.getElementById("fMerk").value.trim();
+  const model=document.getElementById("fModel").value.trim();
+  const tipe=document.getElementById("fTipe").value.trim();
+  const tahun=parseInt(document.getElementById("fTahun").value)||2024;
+  const htlMin=parseFloat(document.getElementById("fHtlMin").value);
+  const htlMax=parseFloat(document.getElementById("fHtlMax").value)||htlMin;
+  const jualMin=parseFloat(document.getElementById("fJualMin").value);
+  const jualMax=parseFloat(document.getElementById("fJualMax").value)||jualMin;
+  if(!merk||!model||!htlMin||!jualMin){showToast("⚠️ Lengkapi data!");return;}
+
+  const dupKey = Object.entries(allData).find(([key, d]) =>
+    key !== editKey &&
+    d.merk.toLowerCase() === merk.toLowerCase() &&
+    d.model.toLowerCase() === model.toLowerCase() &&
+    (d.tipe||"").toLowerCase() === tipe.toLowerCase() &&
+    d.tahun === tahun
+  );
+  if(dupKey){
+    showToast("❌ Data sudah ada! Gunakan Edit.");
+    return;
+  }
+
+  const now = new Date().toISOString();
+  const item={merk,model,tipe,tahun,htlMin,htlMax,jualMin,jualMax,updatedAt:now};
+  if(editKey){set(ref(db,"mobil/"+editKey),item);showToast("✅ Data diupdate!");}
+  else{push(mobilRef,item);showToast("✅ Data ditambahkan!");}
+  closeModal();
+};
+
+window.deleteItem = function(key){
+  if(!confirm("Hapus data ini?"))return;
+  remove(ref(db,"mobil/"+key));
+  showToast("🗑️ Data dihapus");
+};
+
+window.exportCSV = function(){
+  const arr=Object.values(allData);
+  const h=["No","Merk","Model","Tipe","Tahun","HTL Min","HTL Max","Jual Min","Jual Max","Margin Min","Margin Max"];
+  const rows=arr.map((d,i)=>[i+1,d.merk,d.model,d.tipe,d.tahun,d.htlMin,d.htlMax,d.jualMin,d.jualMax,d.jualMin-d.htlMax,d.jualMax-d.htlMin]);
+  const csv=[h,...rows].map(r=>r.join(",")).join("\n");
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));
+  a.download="htl_jualan.csv";a.click();
+  showToast("📥 CSV diexport!");
+};
+
+window.showStats = function(){
+  const arr=Object.values(allData);
+  if(!arr.length){showToast("Belum ada data");return;}
+  const merks=[...new Set(arr.map(d=>d.merk))].length;
+  const avg=Math.round(arr.reduce((s,d)=>s+(d.jualMin+d.jualMax)/2-(d.htlMin+d.htlMax)/2,0)/arr.length);
+  alert(`📊 Statistik\n\nTotal Merk: ${merks}\nTotal Unit: ${arr.length}\nRata-rata Margin: ±${avg} jt\nHTL Terendah: ${Math.min(...arr.map(d=>d.htlMin))} jt\nHTL Tertinggi: ${Math.max(...arr.map(d=>d.htlMax))} jt\nJual Terendah: ${Math.min(...arr.map(d=>d.jualMin))} jt\nJual Tertinggi: ${Math.max(...arr.map(d=>d.jualMax))} jt`);
+};
+
+window.showToast = function(msg){
+  const t=document.getElementById("toast");
+  t.textContent=msg;t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"),2500);
+};
+
+// ====================================================================
+// =========================== SCREENING ==============================
+// ====================================================================
+
+let uploadedFile = null;
+let uploadedBase64 = null;
+
+window.switchPage = function(page){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item[data-page]').forEach(n=>n.classList.remove('active'));
+
+  if(page==='daftar'){
+    document.getElementById('pageDaftar').classList.add('active');
+    document.querySelector('.nav-item[data-page="daftar"]').classList.add('active');
+    document.getElementById('appLogo').innerHTML = 'HTL & Jualan<span>Data Harga Mobil</span>';
+    document.getElementById('btnAdd').style.display = '';
+    document.getElementById('searchWrap').style.display = '';
+    document.getElementById('searchInput').placeholder = 'Cari merk atau model...';
+  } else if(page==='screening'){
+    document.getElementById('pageScreening').classList.add('active');
+    document.querySelector('.nav-item[data-page="screening"]').classList.add('active');
+    document.getElementById('appLogo').innerHTML = `Screening Lot<span>AI-powered · semua lot ditampilkan dengan margin</span>`;
+    document.getElementById('btnAdd').style.display = 'none';
+    document.getElementById('searchWrap').style.display = 'none';
+  }
+  window.scrollTo({top:0,behavior:'smooth'});
+};
+
+window.saveKey = function(){
+  const key = document.getElementById('apiKeyInput').value.trim();
+  const status = document.getElementById('keyStatus');
+  if(!key.startsWith('AIza')){
+    status.textContent = '⚠ Format key salah. Harus dimulai dengan AIza...';
+    status.className = 'key-status err';
+    status.style.display = 'block';
+    return;
+  }
+  localStorage.setItem('gemini_key', key);
+  status.textContent = '✅ API key Gemini tersimpan!';
+  status.className = 'key-status ok';
+  status.style.display = 'block';
+};
+
+window.saveClaudeKey = function(){
+  const key = document.getElementById('claudeKeyInput').value.trim();
+  const status = document.getElementById('claudeKeyStatus');
+  if(!key){
+    localStorage.removeItem('claude_key');
+    status.textContent = '🗑️ Claude API key dihapus (Gemini-only mode)';
+    status.className = 'key-status ok';
+    status.style.display = 'block';
+    return;
+  }
+  if(!key.startsWith('sk-ant-')){
+    status.textContent = '⚠ Format key salah. Harus dimulai dengan sk-ant-...';
+    status.className = 'key-status err';
+    status.style.display = 'block';
+    return;
+  }
+  localStorage.setItem('claude_key', key);
+  status.textContent = '✅ Claude API key tersimpan! Akan dipakai sebagai backup.';
+  status.className = 'key-status ok';
+  status.style.display = 'block';
+};
+
+const uploadZone = document.getElementById('uploadZone');
+const fileInput = document.getElementById('fileInput');
+
+uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+uploadZone.addEventListener('drop', e => {
+  e.preventDefault();
+  uploadZone.classList.remove('drag-over');
+  if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', e => { if (e.target.files[0]) handleFile(e.target.files[0]); });
+
+function handleFile(file){
+  uploadedFile = file;
+  document.getElementById('errorBox').classList.remove('show');
+
+  const preview = document.getElementById('previewArea');
+  const previewImg = document.getElementById('previewImg');
+  const previewFilename = document.getElementById('previewFilename');
+
+  previewFilename.textContent = file.name;
+
+  if(file.type.startsWith('image/')){
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      uploadedBase64 = e.target.result.split(',')[1];
+      previewImg.src = e.target.result;
+      preview.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  } else if(file.type === 'application/pdf'){
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      uploadedBase64 = e.target.result.split(',')[1];
+      previewImg.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect width="200" height="200" fill="%23F8FAFC"/><text x="100" y="115" text-anchor="middle" fill="%231A56DB" font-size="64">📄</text></svg>';
+      preview.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  document.getElementById('analyzeBtn').classList.add('visible');
+}
+
+// ============= FUZZY MATCHING =============
+// Tokenisasi: pecah string jadi kata-kata (lowercase, buang tanda baca)
+function tokenize(s){
+  if(!s) return [];
+  return String(s).toLowerCase()
+    .replace(/[^\w\s.]/g, ' ')   // buang tanda baca kecuali titik (untuk 1.5, 2.5, dll)
+    .split(/\s+/)
+    .filter(t => t.length > 0);
+}
+
+// Normalisasi merk - tangani variasi penulisan
+function normalizeMerk(m){
+  if(!m) return '';
+  return String(m).toLowerCase().trim()
+    .replace(/[-_]/g, ' ')
+    .replace(/\s+/g, ' ');
+}
+
+// Hitung skor kemiripan varian/tipe berbasis token (urutan tidak penting)
+// Return 0-1: 1 = persis sama, 0 = sama sekali tidak match
+function tokenSimilarity(strA, strB){
+  const tokensA = new Set(tokenize(strA));
+  const tokensB = new Set(tokenize(strB));
+  if(tokensA.size === 0 && tokensB.size === 0) return 1;
+  if(tokensA.size === 0 || tokensB.size === 0) return 0;
+
+  // Hitung intersection
+  let intersect = 0;
+  tokensA.forEach(t => { if(tokensB.has(t)) intersect++; });
+
+  // Jaccard similarity = |A∩B| / |A∪B|
+  const union = tokensA.size + tokensB.size - intersect;
+  return intersect / union;
+}
+
+// Cari kandidat terbaik dari database untuk satu lot
+function matchLotToDb(lot, dbArr){
+  // Default: tidak ditemukan
+  const result = {
+    ...lot,
+    // Gabung varian + transmisi untuk display "tipe"
+    tipe: [lot.varian, lot.transmisi].filter(Boolean).join(' '),
+    ref_found: false,
+    ref_htl_min: null, ref_htl_max: null,
+    ref_jual_min: null, ref_jual_max: null,
+    margin_min: null, margin_max: null,
+    catatan: null,
+    matched_to: null
+  };
+
+  if(!lot.merk || !lot.model){
+    result.catatan = 'Data merk/model tidak terbaca dari file';
+    return result;
+  }
+
+  const lotMerk = normalizeMerk(lot.merk);
+  const lotTahun = lot.tahun ? parseInt(lot.tahun) : null;
+  const lotVarianStr = [lot.varian, lot.transmisi].filter(Boolean).join(' ');
+  const lotModelTokens = tokenize(lot.model);
+
+  let bestScore = -1;
+  let best = null;
+
+  for(const ref of dbArr){
+    // FILTER 1: Merk harus sama (toleran terhadap kapitalisasi & spasi)
+    if(normalizeMerk(ref.merk) !== lotMerk) continue;
+
+    // FILTER 2: Tahun toleransi ±1
+    if(lotTahun && ref.tahun){
+      if(Math.abs(ref.tahun - lotTahun) > 1) continue;
+    }
+
+    // SCORE 1: Kemiripan model (token-based, urutan tidak penting)
+    // Trick: gabung model+tipe di kedua sisi karena di file lelang sering
+    // "Model Fisik" sudah berisi model+varian campur.
+    const refFull = `${ref.model} ${ref.tipe || ''}`;
+    const lotFull = `${lot.model} ${lotVarianStr}`;
+    const fullSim = tokenSimilarity(refFull, lotFull);
+
+    // SCORE 2: Kemiripan model murni (untuk pastikan model utama match)
+    const modelSim = tokenSimilarity(ref.model, lot.model);
+
+    // Bobot: model murni penting (60%), full match jadi tiebreaker (40%)
+    let score = modelSim * 0.6 + fullSim * 0.4;
+
+    // BONUS: tahun persis sama
+    if(lotTahun && ref.tahun === lotTahun) score += 0.1;
+
+    // BONUS: ada token varian utama yang match (angka cc seperti 1.2, 1.5, 2.5)
+    const refTokens = tokenize(refFull);
+    const lotTokens = tokenize(lotFull);
+    const ccPattern = /^\d+\.\d+$/;
+    const refCC = refTokens.filter(t => ccPattern.test(t));
+    const lotCC = lotTokens.filter(t => ccPattern.test(t));
+    if(refCC.length && lotCC.length){
+      const ccMatch = refCC.some(c => lotCC.includes(c));
+      if(ccMatch) score += 0.15;
+      else score -= 0.15; // CC jelas berbeda = penalti
+    }
+
+    if(score > bestScore){
+      bestScore = score;
+      best = ref;
+    }
+  }
+
+  // Threshold minimum: butuh setidaknya model agak match
+  // 0.3 = setidaknya beberapa token ketemu
+  if(best && bestScore >= 0.3){
+    result.ref_found = true;
+    result.ref_htl_min = best.htlMin;
+    result.ref_htl_max = best.htlMax;
+    result.ref_jual_min = best.jualMin;
+    result.ref_jual_max = best.jualMax;
+    result.matched_to = `${best.merk} ${best.model} ${best.tipe || ''} ${best.tahun}`.replace(/\s+/g,' ').trim();
+
+    // Hitung margin
+    if(typeof lot.harga_lelang === 'number'){
+      result.margin_min = +(best.jualMin - lot.harga_lelang).toFixed(1);
+      result.margin_max = +(best.jualMax - lot.harga_lelang).toFixed(1);
+    }
+
+    // Catatan: jelaskan kalau matching tidak persis
+    const notes = [];
+    let matchValid = true; // Default: match valid
+
+    // CHECK 1: Model utama harus benar-benar match
+    // Ambil token "core model" - kata pertama yang signifikan dari nama model
+    // (buang kata umum seperti "satya", "prime", angka cc, dll)
+    const stopWords = new Set(['1.0','1.2','1.3','1.5','1.8','2.0','2.5','3.0','satya','prime','star','alpha','zeta','veloz','grand','new','ist','active','sport']);
+    const refModelTokens = tokenize(best.model).filter(t => !stopWords.has(t));
+    const lotModelTokens = tokenize(lot.model).filter(t => !stopWords.has(t));
+
+    // Model utama match kalau ada minimal 1 token core yang sama
+    let modelCoreMatch = false;
+    if(refModelTokens.length && lotModelTokens.length){
+      modelCoreMatch = refModelTokens.some(t => lotModelTokens.includes(t)) ||
+                       lotModelTokens.some(t => refModelTokens.includes(t));
+    } else {
+      // Fallback: kalau salah satu kosong setelah filter, pakai full tokens
+      modelCoreMatch = tokenSimilarity(best.model, lot.model) >= 0.5;
+    }
+    if(!modelCoreMatch){
+      matchValid = false;
+      notes.push(`Model berbeda (${best.model})`);
+    }
+
+    // CHECK 2: Tahun
+    let yearDiff = 0;
+    if(lotTahun && best.tahun !== lotTahun){
+      yearDiff = Math.abs(best.tahun - lotTahun);
+      notes.push(`Tahun ref ${best.tahun}`);
+      // Selisih > 1 tahun langsung invalid
+      if(yearDiff > 1) matchValid = false;
+    }
+
+    // CHECK 3: Transmisi
+    const refTrans = (best.tipe || '').toUpperCase();
+    const lotTrans = (lot.transmisi || '').toUpperCase();
+    if(lotTrans && refTrans && /CVT|AT|MT/.test(refTrans)){
+      const refTransKey = refTrans.match(/\b(CVT|AT|MT)\b/)?.[0];
+      if(refTransKey && refTransKey !== lotTrans){
+        notes.push(`Transmisi ref ${refTransKey} vs ${lotTrans}`);
+        matchValid = false;
+      }
+    }
+
+    // CHECK 4: CC engine harus sama (kalau ada)
+    const ccPattern = /\b(\d+\.\d+)\b/;
+    const refCC = (best.tipe || '').match(ccPattern)?.[1] || best.model.match(ccPattern)?.[1];
+    const lotCC = (lot.varian || '').match(ccPattern)?.[1] || (lot.model || '').match(ccPattern)?.[1];
+    if(refCC && lotCC && refCC !== lotCC){
+      notes.push(`CC ref ${refCC} vs ${lotCC}`);
+      matchValid = false;
+    }
+
+    // CHECK 5: Kode trim/varian (huruf tunggal/pendek seperti X, M, R, G, V, E, S, GR, GX)
+    // Buang token umum, sisakan kode varian yang biasanya 1-3 huruf
+    const trimStopWords = new Set([
+      'mt','at','cvt','ist','dsg',  // transmisi
+      'satya','prime','star','alpha','zeta','veloz','grand','new','rs','sport','luxury','exclusive','active','prestige', // sufiks marketing umum
+      'r','d',  // huruf yang ambigu (R bisa trim atau "Rough Terrain")
+      'tipe','type','varian'
+    ]);
+    const isCC = t => ccPattern.test(t);
+    const isTrimCode = t => /^[a-z]{1,3}$/.test(t) && !trimStopWords.has(t) && !isCC(t);
+
+    const refTrimCodes = tokenize(`${best.model} ${best.tipe || ''}`)
+      .filter(isTrimCode);
+    const lotTrimCodes = tokenize(`${lot.model || ''} ${lot.varian || ''}`)
+      .filter(isTrimCode);
+
+    if(refTrimCodes.length && lotTrimCodes.length){
+      const trimMatch = refTrimCodes.some(rc => lotTrimCodes.includes(rc));
+      if(!trimMatch){
+        notes.push(`Varian ref ${refTrimCodes.join('/').toUpperCase()} vs ${lotTrimCodes.join('/').toUpperCase()}`);
+        matchValid = false;
+      }
+    }
+
+    // CHECK 6: Tahun beda 1 + ada inkonsistensi lain = invalid
+    // (kalau cuma tahun beda 1 dan semua sama, masih boleh valid)
+    if(yearDiff === 1 && notes.length > 1) matchValid = false;
+
+    result.match_valid = matchValid;
+    if(notes.length){
+      result.catatan = `Match: ${result.matched_to} · ${notes.join(', ')}`;
+    } else {
+      result.catatan = `Match: ${result.matched_to}`;
+    }
+  } else {
+    result.match_valid = false;
+    result.catatan = 'Belum ada di database HTL';
+  }
+
+  return result;
+}
+
+// Parser JSON tangguh - tahan terhadap teks pengantar, markdown, JSON terpotong
+function robustJsonParse(text){
+  if(!text) return null;
+  let s = text.trim();
+
+  // 1. Buang code fence ```json ... ```
+  s = s.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '').trim();
+
+  // 2. Coba parse langsung dulu (kasus normal)
+  try { return JSON.parse(s); } catch(_) {}
+
+  // 3. Cari JSON object pertama dengan brace balancing
+  //    (handle kasus AI kasih teks pengantar seperti "Berikut adalah ...")
+  const start = s.indexOf('{');
+  if(start === -1) return null;
+
+  let depth = 0, inStr = false, esc = false, end = -1;
+  for(let i = start; i < s.length; i++){
+    const c = s[i];
+    if(esc){ esc = false; continue; }
+    if(c === '\\'){ esc = true; continue; }
+    if(c === '"'){ inStr = !inStr; continue; }
+    if(inStr) continue;
+    if(c === '{') depth++;
+    else if(c === '}'){ depth--; if(depth === 0){ end = i; break; } }
+  }
+
+  // 4. Kalau JSON lengkap, coba parse
+  if(end > 0){
+    try { return JSON.parse(s.substring(start, end + 1)); } catch(_) {}
+  }
+
+  // 5. JSON terpotong - coba tutup di "}," terakhir di dalam array lots
+  let candidate = end > 0 ? s.substring(start, end + 1) : s.substring(start);
+  const lastObj = candidate.lastIndexOf('},');
+  if(lastObj > 0){
+    const fixed = candidate.substring(0, lastObj + 1) + ']}';
+    try { return JSON.parse(fixed); } catch(_) {}
+  }
+  // 6. Last resort - tutup di "}" terakhir
+  const lastBrace = candidate.lastIndexOf('}');
+  if(lastBrace > 0){
+    let fixed = candidate.substring(0, lastBrace + 1);
+    // Tutup string yang belum terminate kalau ada
+    fixed = fixed.replace(/:\s*"[^"]*$/m, ': ""');
+    if(!fixed.trim().endsWith(']}')) fixed += ']}';
+    try { return JSON.parse(fixed); } catch(_) {}
+  }
+  return null;
+}
+
+window.analyzeLot = async function(){
+  if(!uploadedBase64 || !uploadedFile) return;
+
+  const apiKey = localStorage.getItem('gemini_key') || document.getElementById('apiKeyInput').value.trim();
+  const errBox = document.getElementById('errorBox');
+  if(!apiKey){
+    errBox.textContent = '⚠ Masukkan API key Gemini dulu!';
+    errBox.classList.add('show');
+    return;
+  }
+
+  // Bangun DB referensi dari Firebase realtime (allData)
+  const dbArr = Object.values(allData);
+  if(!dbArr.length){
+    errBox.textContent = '⚠ Database HTL kosong! Tambahkan data di tab Daftar dulu.';
+    errBox.classList.add('show');
+    return;
+  }
+
+  document.getElementById('analyzeBtn').disabled = true;
+  document.getElementById('loadingSection').classList.add('show');
+  document.getElementById('resultsSection').classList.remove('show');
+  errBox.classList.remove('show');
+  try {
+    const prompt = `Kamu adalah asisten ekstraksi data lot lelang mobil. Baca gambar/file yang diberikan.
+
+Tugas: Ekstrak SEMUA baris/lot mobil yang ada di file - jangan ada yang terlewat. Setiap baris biasanya berisi kolom-kolom seperti: No Lot, No Pol, Merk, Model Fisik (model + varian), Trans/Transmisi (MT/AT/CVT), Tahun, Warna, KM, Masa Berlaku STNK, Harga Dasar/START PRICE, Pool.
+
+PENTING:
+- Tampilkan SEMUA lot, JANGAN disaring atau dibuang.
+- Pisahkan kolom "Model Fisik" menjadi "model" (nama model utama, misal CAMRY, BRIO SATYA, AVANZA G) dan "varian" (kode varian seperti "V 2.5", "E 1.2", "1.5", atau apapun yang tertulis setelah model).
+- Konversi harga dari rupiah penuh ke juta: 145.000.000 → 145, 95.000.000 → 95.
+- Jika ada nilai yang tidak terbaca/kosong, isi null. Jangan mengarang.
+
+Format output (HANYA JSON, tanpa teks lain):
+{"lots":[{"no_lot":"316","no_pol":"B 2556 SXW","merk":"TOYOTA","model":"CAMRY","varian":"V 2.5","transmisi":"AT","tahun":2013,"warna":null,"km":111878,"stnk":"28/02/2025","harga_lelang":110,"pool":"JAKARTA RAYA"}]}`;
+
+    const mimeType = uploadedFile.type || 'image/jpeg';
+
+    // Body untuk Gemini
+    const geminiBody = {
+      contents: [{
+        parts: [
+          { inline_data: { mime_type: mimeType, data: uploadedBase64 } },
+          { text: prompt }
+        ]
+      }],
+      generationConfig: {
+        temperature: 0.1,
+        maxOutputTokens: 8192,
+        responseMimeType: "application/json"
+      }
+    };
+
+    // Daftar model fallback Gemini - kalau yang utama overload, coba yang lain
+    const geminiModels = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-flash-latest'];
+    const claudeKey = localStorage.getItem('claude_key');
+    const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+    let response = null;
+    let lastError = null;
+    let raw = null;
+    let usedProvider = null;
+    const loadingText = document.querySelector('#loadingSection .loading-text');
+
+    // ============= STAGE 1: COBA SEMUA MODEL GEMINI =============
+    geminiLoop: for(let mi = 0; mi < geminiModels.length; mi++){
+      const model = geminiModels[mi];
+      // Per model, retry hingga 3x dengan exponential backoff
+      for(let attempt = 0; attempt < 3; attempt++){
+        if(attempt > 0 || mi > 0){
+          if(loadingText){
+            loadingText.innerHTML = mi > 0
+              ? `Server <strong>${geminiModels[mi-1]}</strong> sibuk, coba <strong>${model}</strong>...`
+              : `Server sibuk, mencoba lagi (${attempt+1}/3)...`;
+          }
+          await sleep(1000 * Math.pow(2, attempt)); // 1s, 2s, 4s
+        }
+        try {
+          response = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(geminiBody)
+            }
+          );
+
+          const data = await response.json();
+
+          if(response.ok){
+            raw = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+            usedProvider = `Gemini ${model}`;
+            break geminiLoop;
+          }
+
+          // Handle error
+          const status = response.status;
+          const errMsg = data.error?.message || `HTTP ${status}`;
+          lastError = new Error(errMsg);
+          lastError.status = status;
+
+          // 401/403 = key salah, jangan retry tapi tetap coba Claude jika ada
+          if(status === 401 || status === 403){
+            lastError = new Error('API key Gemini tidak valid atau ditolak.');
+            break geminiLoop;
+          }
+          // 400 = request salah, jangan retry
+          if(status === 400){
+            lastError = new Error('Request ke Gemini ditolak: ' + errMsg);
+            break geminiLoop;
+          }
+          // 503/429/500 = overload/rate limit/server error, coba lagi
+          if(status === 503 || status === 429 || status === 500 || status === 504){
+            continue; // retry
+          }
+          // Error lain - lanjut ke model berikutnya
+          break;
+        } catch(fetchErr){
+          lastError = fetchErr;
+          continue;
+        }
+      }
+    }
+
+    // ============= STAGE 2: FALLBACK KE CLAUDE HAIKU =============
+    if(raw === null && claudeKey){
+      if(loadingText){
+        loadingText.innerHTML = `Gemini overload semua, beralih ke <strong>Claude Haiku</strong>...`;
+      }
+      await sleep(500);
+
+      // Claude API butuh format berbeda - pakai messages API
+      const claudeBody = {
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 8192,
+        temperature: 0.1,
+        messages: [{
+          role: "user",
+          content: [
+            {
+              type: "image",
+              source: {
+                type: "base64",
+                media_type: mimeType,
+                data: uploadedBase64
+              }
+            },
+            { type: "text", text: prompt + "\n\nPENTING: Jawab HANYA dengan JSON valid, tanpa preamble atau penjelasan apapun." }
+          ]
+        }]
+      };
+
+      // Retry Claude max 2x
+      for(let attempt = 0; attempt < 2; attempt++){
+        if(attempt > 0){
+          if(loadingText){
+            loadingText.innerHTML = `Claude juga sibuk, mencoba lagi (${attempt+1}/2)...`;
+          }
+          await sleep(1500);
+        }
+        try {
+          response = await fetch("https://api.anthropic.com/v1/messages", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "x-api-key": claudeKey,
+              "anthropic-version": "2023-06-01",
+              "anthropic-dangerous-direct-browser-access": "true"
+            },
+            body: JSON.stringify(claudeBody)
+          });
+
+          const data = await response.json();
+
+          if(response.ok){
+            // Claude returns content as array of blocks; ambil text block
+            const textBlock = data.content?.find(b => b.type === 'text');
+            raw = textBlock?.text || '';
+            usedProvider = `Claude Haiku 4.5 (backup)`;
+            break;
+          }
+
+          const status = response.status;
+          const errMsg = data.error?.message || `HTTP ${status}`;
+          lastError = new Error('Claude: ' + errMsg);
+          lastError.status = status;
+
+          if(status === 401 || status === 403){
+            lastError = new Error('Claude API key tidak valid. Cek di pengaturan.');
+            break;
+          }
+          if(status === 400){
+            lastError = new Error('Claude menolak request: ' + errMsg);
+            break;
+          }
+          if(status === 529 || status === 503 || status === 429 || status === 500){
+            continue; // retry
+          }
+          break;
+        } catch(fetchErr){
+          lastError = fetchErr;
+          continue;
+        }
+      }
+    }
+
+    // ============= STAGE 3: HANDLE FINAL ERROR =============
+    if(raw === null){
+      const msg = lastError?.message || 'Tidak diketahui';
+      if(!claudeKey && (msg.includes('high demand') || msg.includes('overloaded') || lastError?.status === 503)){
+        throw new Error('Server Gemini sangat sibuk. 💡 Tip: Tambahkan API key Claude Haiku sebagai cadangan supaya otomatis fallback. Atau tunggu 1-3 menit lalu coba lagi.');
+      }
+      if(msg.includes('high demand') || msg.includes('overloaded') || lastError?.status === 503 || lastError?.status === 529){
+        throw new Error('Semua provider AI sedang sibuk (Gemini & Claude). Tunggu 1-3 menit lalu coba lagi.');
+      }
+      if(lastError?.status === 429){
+        throw new Error('Limit kuota tercapai. Tunggu beberapa menit atau cek kuota di dashboard provider Anda.');
+      }
+      throw new Error(msg);
+    }
+
+    if(loadingText && usedProvider){
+      loadingText.innerHTML = `Berhasil dengan <strong>${usedProvider}</strong>, memproses hasil...`;
+    }
+
+    const parsed = robustJsonParse(raw);
+    if(!parsed) throw new Error('AI tidak memberi JSON yang valid. Coba lagi atau ganti file.');
+
+    // Pencocokan dilakukan di sini (JavaScript), BUKAN oleh AI
+    const lots = (parsed.lots || []).map(lot => matchLotToDb(lot, dbArr));
+    renderScreeningResults(lots, usedProvider);
+
+  } catch(err){
+    errBox.textContent = '⚠ Gagal menganalisis: ' + err.message;
+    errBox.classList.add('show');
+  } finally {
+    document.getElementById('loadingSection').classList.remove('show');
+    document.getElementById('analyzeBtn').disabled = false;
+  }
+};
+
+function getKategoriHTL(hargaLelang, htlMin, htlMax){
+  if(!hargaLelang || !htlMin || !htlMax) return "-";
+  const selisihMin = htlMin - hargaLelang;
+  const selisihMax = htlMax - hargaLelang;
+  if(selisihMin >= 0) return "✅ Lebih murah " + selisihMin.toFixed(1) + "jt dari HTL Min";
+  if(selisihMax >= 0) return "⚠️ Lebih murah " + Math.abs(selisihMax).toFixed(1) + "jt dari HTL Max";
+  return "❌ Lebih mahal " + Math.abs(selisihMax).toFixed(1) + "jt dari HTL Max";
+}
+
+function getKategoriHTLColor(hargaLelang, htlMin, htlMax){
+  if(!hargaLelang || !htlMin || !htlMax) return "var(--muted)";
+  const selisihMin = htlMin - hargaLelang;
+  const selisihMax = htlMax - hargaLelang;
+  if(selisihMin >= 0) return "var(--green)";
+  if(selisihMax >= 0) return "#B45309";
+  return "var(--accent2)";
+}
+
+// Kategori berdasarkan margin: positif besar (hijau), positif kecil/nol (kuning), negatif (merah)
+function getMarginCategory(marginMin, marginMax){
+  if(marginMin === null || marginMin === undefined) return 'unknown';
+  // Pakai marginMax sebagai patokan terbaik (best-case)
+  if(marginMax > 10) return 'good';      // margin > 10jt = hijau
+  if(marginMax > 0) return 'thin';        // margin 0-10jt = kuning
+  return 'minus';                         // margin negatif = merah
+}
+
+function renderScreeningResults(lots, usedProvider){
+  const total = lots.length;
+  const withRef = lots.filter(l => l.ref_found).length;
+  const noRef = lots.filter(l => !l.ref_found).length;
+
+  document.getElementById('statTotal').textContent = total;
+  document.getElementById('statLayak').textContent = withRef;
+  document.getElementById('statSkip').textContent = noRef;
+
+  // Tampilkan info provider yang dipakai
+  const providerInfo = document.getElementById('providerInfo');
+  if(providerInfo){
+    if(usedProvider){
+      const isClaude = usedProvider.toLowerCase().includes('claude');
+      providerInfo.innerHTML = isClaude
+        ? `🛡️ Diproses oleh <strong>${usedProvider}</strong>`
+        : `🌟 Diproses oleh <strong>${usedProvider}</strong>`;
+      providerInfo.style.display = 'block';
+      providerInfo.className = 'provider-info ' + (isClaude ? 'claude' : 'gemini');
+    } else {
+      providerInfo.style.display = 'none';
+    }
+  }
+
+  // Sort: margin terbesar dulu, yang tidak ada ref di paling bawah
+  lots.sort((a,b) => {
+    if(!a.ref_found && b.ref_found) return 1;
+    if(a.ref_found && !b.ref_found) return -1;
+    if(!a.ref_found && !b.ref_found) return 0;
+    return (b.margin_max ?? 0) - (a.margin_max ?? 0);
+  });
+
+  const grid = document.getElementById('lotGrid');
+  grid.innerHTML = '';
+
+  lots.forEach((lot, i) => {
+    const cat = getMarginCategory(lot.margin_min, lot.margin_max);
+    const cardClass = cat === 'good' ? 'good' : cat === 'thin' ? 'thin' : cat === 'minus' ? 'minus' : 'unknown';
+
+    let marginBadge = '';
+    let marginValue = '';
+    if(lot.ref_found && lot.margin_min !== null && lot.margin_max !== null){
+      const sign = lot.margin_max >= 0 ? '+' : '';
+      marginValue = `${sign}${lot.margin_min.toFixed(1)} – ${sign}${lot.margin_max.toFixed(1)} jt`;
+      marginBadge = cat === 'good' ? '💰 Margin Bagus'
+                  : cat === 'thin' ? '⚠️ Margin Tipis'
+                  : '📉 Margin Minus';
+    } else {
+      marginBadge = '🔍 Tak Ada Ref';
+      marginValue = '-';
+    }
+
+    // Detail tambahan: No Pol, KM, STNK, Pool, Transmisi, Warna
+    const detailParts = [];
+    if(lot.tipe) detailParts.push(lot.tipe);
+    if(lot.transmisi) detailParts.push(lot.transmisi);
+    if(lot.tahun) detailParts.push(lot.tahun);
+    if(lot.warna) detailParts.push(lot.warna);
+    const detailLine = detailParts.join(' · ');
+
+    const metaParts = [];
+    if(lot.no_pol) metaParts.push(`🚘 ${lot.no_pol}`);
+    if(lot.km) metaParts.push(`📏 ${lot.km.toLocaleString('id-ID')} km`);
+    if(lot.stnk) metaParts.push(`📅 STNK ${lot.stnk}`);
+    if(lot.pool) metaParts.push(`📍 ${lot.pool}`);
+    const metaLine = metaParts.join(' · ');
+
+    const card = document.createElement('div');
+    card.className = `lot-card ${cardClass}`;
+    card.style.animationDelay = `${i * 0.03}s`;
+
+    card.innerHTML = `
+      <div class="lot-card-header">
+        <div class="lot-number">LOT ${lot.no_lot || '?'}</div>
+        <div class="lot-car-info">
+          <div class="lot-car-name">${lot.merk||'?'} ${lot.model||''}</div>
+          <div class="lot-car-detail">${detailLine || '-'}</div>
+        </div>
+        <div class="lot-status ${cardClass}">${marginBadge}</div>
+      </div>
+      ${metaLine ? `<div class="lot-meta">${metaLine}</div>` : ''}
+      ${lot.ref_found ? `
+      <div class="lot-card-body">
+        <div class="price-item">
+          <div class="price-item-label">Harga Lelang</div>
+          <div class="price-item-value lelang">${lot.harga_lelang ? lot.harga_lelang + ' jt' : '-'}</div>
+        </div>
+        <div class="price-item">
+          <div class="price-item-label">Margin (Jual − Lelang)</div>
+          <div class="price-item-value margin ${cardClass}">${marginValue}</div>
+        </div>
+        <div class="price-item">
+          <div class="price-item-label">HTL Min → Max</div>
+          <div class="price-item-value htl">${lot.ref_htl_min || "-"} → ${lot.ref_htl_max || "-"} jt</div>
+        </div>
+        <div class="price-item">
+          <div class="price-item-label">Jual Min → Max</div>
+          <div class="price-item-value jual">${lot.ref_jual_min} → ${lot.ref_jual_max} jt</div>
+        </div>
+        <div class="price-item full">
+          <div class="price-item-label">Posisi vs HTL</div>
+          <div class="price-item-value" style="color:${getKategoriHTLColor(lot.harga_lelang, lot.ref_htl_min, lot.ref_htl_max)};font-size:12px">${getKategoriHTL(lot.harga_lelang, lot.ref_htl_min, lot.ref_htl_max)}</div>
+        </div>
+      </div>
+      ` : `
+      <div class="lot-card-body">
+        <div class="price-item full">
+          <div class="price-item-label">Harga Lelang</div>
+          <div class="price-item-value lelang">${lot.harga_lelang ? lot.harga_lelang + ' jt' : '-'}</div>
+        </div>
+      </div>`}
+      ${lot.catatan ? `<div class="lot-note ${!lot.ref_found ? 'not-found' : (lot.match_valid ? 'match-valid' : 'match-invalid')}">${!lot.ref_found ? '🔍' : (lot.match_valid ? '✅' : '⚠️')} ${lot.catatan}</div>` : ''}
+    `;
+
+    grid.appendChild(card);
+  });
+
+  document.getElementById('resultsSection').classList.add('show');
+  document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
+}
+
+window.resetScreening = function(){
+  uploadedFile = null;
+  uploadedBase64 = null;
+  document.getElementById('fileInput').value = '';
+  document.getElementById('previewArea').style.display = 'none';
+  document.getElementById('analyzeBtn').classList.remove('visible');
+  document.getElementById('resultsSection').classList.remove('show');
+  document.getElementById('errorBox').classList.remove('show');
+  document.getElementById('lotGrid').innerHTML = '';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+// Load saved API keys
+window.addEventListener('DOMContentLoaded', () => {
+  const saved = localStorage.getItem('gemini_key');
+  if(saved) document.getElementById('apiKeyInput').value = saved;
+  const claudeSaved = localStorage.getItem('claude_key');
+  if(claudeSaved) document.getElementById('claudeKeyInput').value = claudeSaved;
+});
+
+if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
+</script>
+</body>
+</html>

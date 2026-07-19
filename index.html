@@ -1,0 +1,1458 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#FFFFFF">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="HTL & Jualan">
+<title>HTL & Jualan Mobil</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<!-- SheetJS: dipakai buat BACA file Excel (.xlsx) langsung di browser, tanpa upload ke server -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{
+  --bg:#F5F7FA;--surface:#FFFFFF;--card:#FFFFFF;--accent:#1A56DB;--accent2:#E3342F;--green:#0D9F6E;
+  --text:#1A202C;--muted:#718096;--border:#E2E8F0;--radius:14px;--shadow:0 2px 8px rgba(0,0,0,0.07);
+  --warning:#F59E0B;--teal:#0D9488;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:"Inter",sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;padding-bottom:40px}
+
+/* ===== HEADER ===== */
+header{background:#fff;padding:16px 18px 0;position:sticky;top:0;z-index:100;border-bottom:1px solid var(--border);box-shadow:0 1px 6px rgba(0,0,0,0.06)}
+.head-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:4px}
+.logo{font-weight:900;font-size:20px;color:var(--accent);letter-spacing:-0.5px}
+.sync{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);font-weight:600}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;flex-shrink:0}
+.sync-dot.offline{background:var(--accent2);animation:none}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.last-update{font-size:11px;color:var(--muted);margin-bottom:12px;font-weight:500}
+.last-update b{color:var(--teal);font-weight:700}
+
+/* tombol aksi atas */
+.actions{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.btn{border:none;border-radius:10px;padding:10px 14px;font-family:inherit;font-weight:700;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:var(--accent);color:#fff;box-shadow:0 2px 8px rgba(26,86,219,.25)}
+.btn-ghost{background:#F1F5F9;color:var(--text);border:1px solid var(--border)}
+.btn-ghost:active{background:#E2E8F0}
+
+/* search */
+.search-wrap{position:relative;margin-bottom:12px}
+.search-wrap svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--muted)}
+input[type="search"]{width:100%;background:#F1F5F9;border:1.5px solid var(--border);border-radius:10px;padding:11px 16px 11px 38px;color:var(--text);font-family:inherit;font-size:14px;outline:none;-webkit-appearance:none}
+input[type="search"]:focus{border-color:var(--accent);background:#fff}
+
+/* stat chips */
+.stats{display:flex;gap:7px;overflow-x:auto;padding-bottom:12px;scrollbar-width:none}
+.stats::-webkit-scrollbar{display:none}
+.stat-chip{background:#EBF4FF;border-radius:8px;padding:6px 12px;font-size:12px;white-space:nowrap;color:var(--accent);flex-shrink:0;font-weight:600}
+.stat-chip b{font-weight:800}
+
+/* ===== MAIN ===== */
+main{padding:14px 18px 0;max-width:760px;margin:0 auto}
+
+/* ===== FILTER BAR (dropdown searchable) ===== */
+.filter-section{margin-bottom:14px;background:#fff;border-radius:12px;padding:12px;box-shadow:var(--shadow);border:1px solid var(--border)}
+.filter-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}
+.filter-title{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.btn-reset{background:none;border:none;color:var(--accent2);font-size:12px;font-family:inherit;cursor:pointer;padding:0;font-weight:700;display:none}
+
+/* HP: 2 kolom. Layar lebar: 4 kolom -> 7 dropdown jadi 2 baris rapi */
+.filter-bar{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media(min-width:720px){.filter-bar{grid-template-columns:repeat(4,1fr)}}
+
+/* tombol pemicu dropdown */
+.fdrop{position:relative;min-width:0}
+.fdrop-btn{width:100%;display:flex;flex-direction:column;align-items:flex-start;gap:1px;background:#F8FAFC;border:1.5px solid var(--border);border-radius:10px;padding:7px 26px 7px 11px;font-family:inherit;cursor:pointer;text-align:left;position:relative;min-width:0}
+.fdrop-btn:active{background:#EEF2F7}
+.fdrop.on .fdrop-btn{border-color:var(--accent);background:#EBF4FF}
+.fdrop-lbl{font-size:9.5px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
+.fdrop-val{font-size:13px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;display:block}
+.fdrop.on .fdrop-val{color:var(--accent)}
+.fdrop-btn::after{content:"";position:absolute;right:10px;top:calc(50% - 2px);border:5px solid transparent;border-top-color:var(--muted)}
+
+/* baris "filter aktif" — tiap chip bisa dimatikan sendiri-sendiri */
+.act-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.act-row:empty{margin-top:0}
+.act-chip{display:inline-flex;align-items:center;gap:7px;background:#EBF4FF;border:1.5px solid var(--accent);color:var(--accent);border-radius:8px;padding:4px 8px;font-size:11.5px;font-weight:700}
+.act-x{cursor:pointer;font-weight:900;font-size:14px;line-height:1;opacity:.65}
+.act-x:active{opacity:1}
+
+/* ===== PANEL DROPDOWN ===== */
+.drop-overlay{display:none;position:fixed;inset:0;z-index:250}
+.drop-overlay.show{display:block}
+.drop-panel{position:absolute;background:#fff;border:1px solid var(--border);border-radius:12px;box-shadow:0 12px 34px rgba(15,23,42,.18);width:280px;max-height:340px;display:flex;flex-direction:column;overflow:hidden}
+.drop-head{display:none;flex:0 0 auto;padding:12px 14px 2px;text-align:center}
+.drop-handle{width:36px;height:4px;background:#E2E8F0;border-radius:2px;margin:0 auto 10px}
+.drop-title{font-size:13px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.8px}
+.drop-search{flex:0 0 auto;padding:10px;border-bottom:1px solid var(--border)}
+.drop-search input{width:100%;background:#F1F5F9;border:1.5px solid var(--border);border-radius:9px;padding:9px 11px;font-family:inherit;font-size:14px;color:var(--text);outline:none;-webkit-appearance:none}
+.drop-search input:focus{border-color:var(--accent);background:#fff}
+/* min-height:0 WAJIB: tanpa ini anak flex nggak boleh menyusut, jadi list-nya
+   melar melebihi panel lalu kepotong overflow:hidden -> nggak bisa discroll */
+.drop-list{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:6px;-webkit-overflow-scrolling:touch}
+.drop-opt{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 10px;border-radius:8px;cursor:pointer;font-size:13.5px;font-weight:600;color:var(--text)}
+.drop-opt:active{background:#F1F5F9}
+.drop-opt.sel{background:#EBF4FF;color:var(--accent);font-weight:800}
+.drop-opt span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.drop-n{font-size:11px;color:var(--muted);font-weight:700;background:#F1F5F9;border-radius:6px;padding:1px 6px;flex-shrink:0}
+.drop-opt.sel .drop-n{background:#DBEAFE;color:var(--accent)}
+.drop-empty{padding:18px;text-align:center;color:var(--muted);font-size:13px}
+
+/* HP: panel berubah jadi bottom sheet biar gampang dijempol */
+@media(max-width:719px){
+  .drop-overlay.show{display:flex;align-items:flex-end;background:rgba(15,23,42,.5);backdrop-filter:blur(3px)}
+  .drop-panel{position:relative!important;left:0!important;top:auto!important;width:100%!important;max-width:760px;margin:0 auto;border-radius:18px 18px 0 0;max-height:72vh;animation:slideUp .25s ease}
+  .drop-head{display:block}
+  .drop-list{padding:6px 10px 26px}
+  .drop-opt{padding:12px 10px;font-size:15px}
+}
+
+/* result count */
+.result-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;font-size:12px;color:var(--muted);font-weight:600}
+
+/* car card */
+.car-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);margin-bottom:10px;overflow:hidden;animation:fadeUp .22s ease both;box-shadow:var(--shadow)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.card-body{padding:13px 15px}
+.card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:8px}
+.car-tipe{font-weight:800;font-size:15px;color:var(--text);letter-spacing:-.2px;line-height:1.3}
+.car-merk{font-size:11px;color:var(--muted);font-weight:600;margin-top:2px;text-transform:uppercase;letter-spacing:.5px}
+.badges{display:flex;gap:5px;flex-wrap:wrap;margin-top:2px}
+.bdg{border-radius:6px;padding:3px 8px;font-size:10px;font-weight:700;white-space:nowrap}
+.bdg-year{background:#FFF8E1;color:#B45309;border:1px solid #FDE68A}
+.bdg-trans{background:#F0FDF4;color:#16A34A;border:1px solid #BBF7D0}
+.bdg-area{background:#F0FDFA;color:var(--teal);border:1px solid #99F6E4}
+.bdg-new{background:#EFF6FF;color:var(--accent);border:1px solid #BFDBFE}
+
+.price-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px}
+.price-box{background:#F8FAFC;border:1px solid var(--border);border-radius:10px;padding:9px 11px}
+.price-box.htl-empty{background:#FFFBEB;border-color:#FDE68A;cursor:pointer}
+.price-lbl{font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px}
+.price-val{font-weight:800;font-size:15px;color:var(--text)}
+.price-val.harga{color:var(--accent)}
+.price-val.htl{color:var(--teal)}
+.price-sub{font-size:10px;color:var(--muted);font-weight:600}
+.htl-hint{font-size:11px;color:#B45309;font-weight:700}
+
+.card-foot{padding:8px 15px;background:#F8FAFC;display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--border)}
+.upd{font-size:10px;color:var(--muted);font-weight:600}
+.foot-btns{display:flex;gap:6px}
+.btn-icon{background:#fff;border:1px solid var(--border);border-radius:8px;padding:5px 10px;color:var(--muted);font-size:12px;cursor:pointer;font-weight:600}
+.btn-icon:active{background:#E2E8F0}
+.btn-icon.del{color:var(--accent2)}
+
+/* empty */
+.empty{text-align:center;padding:50px 20px;color:var(--muted)}
+.empty .big{font-size:38px;margin-bottom:10px}
+.empty h3{font-size:15px;color:var(--text);margin-bottom:6px}
+.empty p{font-size:13px;line-height:1.5}
+
+/* ===== MODAL (bottom sheet) ===== */
+.overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:200;align-items:flex-end;backdrop-filter:blur(3px)}
+.overlay.show{display:flex}
+.sheet{background:#fff;border-radius:20px 20px 0 0;padding:20px 18px 34px;width:100%;max-width:760px;margin:0 auto;max-height:92vh;overflow-y:auto;animation:slideUp .28s cubic-bezier(.34,1.56,.64,1)}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:none}}
+.sheet-handle{width:36px;height:4px;background:#E2E8F0;border-radius:2px;margin:0 auto 16px}
+.sheet-title{font-size:18px;font-weight:800;margin-bottom:16px;color:var(--accent)}
+.fg{margin-bottom:13px}
+.fg label{display:block;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px}
+.fg input,.fg select{width:100%;background:#F8FAFC;border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;color:var(--text);font-family:inherit;font-size:15px;outline:none;-webkit-appearance:none}
+.fg input:focus,.fg select:focus{border-color:var(--accent);background:#fff;box-shadow:0 0 0 3px rgba(26,86,219,.08)}
+.fg .hint{font-size:11px;color:var(--muted);margin-top:4px;font-weight:500}
+.fg-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sheet-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+.btn-cancel{background:#F1F5F9;border:none;border-radius:10px;padding:13px;color:var(--muted);font-family:inherit;font-weight:700;font-size:14px;cursor:pointer}
+.btn-save{background:var(--accent);border:none;border-radius:10px;padding:13px;color:#fff;font-family:inherit;font-weight:700;font-size:14px;cursor:pointer}
+
+/* import preview */
+.imp-drop{border:2px dashed var(--border);border-radius:12px;padding:26px 16px;text-align:center;color:var(--muted);cursor:pointer;background:#F8FAFC}
+.imp-drop.hover{border-color:var(--accent);background:#EFF6FF}
+.imp-info{background:#F0FDFA;border:1px solid #99F6E4;border-radius:10px;padding:12px;font-size:13px;color:var(--text);margin-top:12px;line-height:1.6;display:none}
+.imp-info b{color:var(--teal)}
+.imp-err{background:#FEF2F2;border:1px solid #FECACA;border-radius:10px;padding:12px;font-size:13px;color:var(--accent2);margin-top:12px;display:none;font-weight:600}
+
+/* ===== ANALISA ===== */
+.ana-tabs{display:flex;gap:5px;background:#F1F5F9;padding:4px;border-radius:10px;margin-bottom:13px}
+.ana-tab{flex:1;padding:8px 4px;border:none;background:none;border-radius:8px;font-family:inherit;font-size:11.5px;font-weight:700;color:var(--muted);cursor:pointer}
+.ana-tab.on{background:#fff;color:var(--accent);box-shadow:0 1px 4px rgba(0,0,0,.09)}
+.ana-note{font-size:11.5px;color:var(--muted);line-height:1.55;background:#F8FAFC;border:1px solid var(--border);border-radius:9px;padding:9px 11px;margin-bottom:12px}
+.ana-note b{color:var(--text)}
+.ana-sel{width:100%;background:#F8FAFC;border:1.5px solid var(--border);border-radius:10px;padding:11px 13px;font-family:inherit;font-size:14px;font-weight:700;color:var(--text);margin-bottom:12px;outline:none;-webkit-appearance:none}
+.ana-sel:focus{border-color:var(--accent);background:#fff}
+
+/* kartu angka ringkas */
+.ana-kpi{display:flex;gap:8px;margin-bottom:13px}
+.ana-kpi>div{flex:1;background:#EBF4FF;border-radius:10px;padding:9px 11px;min-width:0}
+.kpi-l{font-size:9.5px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.kpi-v{font-size:16px;font-weight:900;color:var(--accent);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* grafik batang (murni CSS, tanpa library) */
+.bar-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.bar-y{width:36px;flex-shrink:0;font-size:12px;font-weight:800;color:var(--muted)}
+.bar-track{flex:1;min-width:0;background:#F1F5F9;border-radius:6px;height:26px;position:relative;overflow:hidden}
+.bar-fill{height:100%;border-radius:6px;min-width:3px;background:linear-gradient(90deg,#1A56DB,#60A5FA)}
+.bar-v{position:absolute;left:9px;top:0;line-height:26px;font-size:11.5px;font-weight:800;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.3)}
+.bar-n{width:50px;flex-shrink:0;text-align:right;font-size:10.5px;font-weight:700;color:var(--muted)}
+
+/* tabel perbandingan */
+.ana-tbl{width:100%;border-collapse:collapse;font-size:12px}
+.ana-tbl th{text-align:left;font-size:9.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);padding:6px 5px;border-bottom:1.5px solid var(--border);font-weight:800}
+.ana-tbl td{padding:8px 5px;border-bottom:1px solid var(--border);font-weight:600}
+.ana-tbl .num{text-align:right;white-space:nowrap}
+.naik{color:var(--accent2);font-weight:800}
+.turun{color:var(--green);font-weight:800}
+
+/* daftar unit di bawah pasar */
+.ana-item{border:1px solid var(--border);border-radius:11px;padding:11px 13px;margin-bottom:8px;cursor:pointer;background:#fff}
+.ana-item:active{background:#F8FAFC}
+.ana-item .t{font-weight:800;font-size:13.5px;line-height:1.3}
+.ana-item .s{font-size:10.5px;color:var(--muted);font-weight:700;margin-top:3px;text-transform:uppercase;letter-spacing:.4px}
+.ana-item .r{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-top:8px;font-size:12.5px;font-weight:700}
+.ana-selisih{background:#F0FDF4;color:#15803D;border:1px solid #BBF7D0;border-radius:7px;padding:2px 8px;font-size:11.5px;font-weight:800;white-space:nowrap}
+.ana-empty{text-align:center;color:var(--muted);font-size:13px;padding:28px 12px;line-height:1.6}
+
+/* toast */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--text);color:#fff;padding:11px 20px;border-radius:10px;font-size:13px;font-weight:600;z-index:300;opacity:0;transition:.3s;box-shadow:0 6px 20px rgba(0,0,0,.25);max-width:90vw;text-align:center}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+
+/* ===== LOGIN ===== */
+.auth-screen{position:fixed;inset:0;z-index:500;background:linear-gradient(160deg,#EBF4FF 0%,#F5F7FA 60%);display:flex;align-items:center;justify-content:center;padding:20px}
+.auth-card{background:#fff;border-radius:18px;box-shadow:0 10px 40px rgba(15,23,42,.12);padding:30px 24px;width:100%;max-width:380px;border:1px solid var(--border)}
+.auth-logo{font-weight:900;font-size:24px;color:var(--accent);text-align:center;letter-spacing:-.5px}
+.auth-sub{text-align:center;color:var(--muted);font-size:13px;font-weight:500;margin:6px 0 22px}
+.auth-err{display:none;background:#FEF2F2;border:1px solid #FECACA;color:var(--accent2);border-radius:10px;padding:10px 12px;font-size:13px;font-weight:600;margin-top:12px;text-align:center}
+.btn-logout{background:#F1F5F9;border:1px solid var(--border);border-radius:7px;padding:3px 10px;font-family:inherit;font-size:11px;font-weight:700;color:var(--muted);cursor:pointer;margin-left:8px}
+.btn-logout:active{background:#E2E8F0}
+</style>
+</head>
+<body>
+
+<!-- ===== LAYAR LOGIN (tampil sampai user masuk) ===== -->
+<div class="auth-screen" id="authScreen">
+  <div class="auth-card">
+    <div class="auth-logo">HTL &amp; Jualan Mobil</div>
+    <div class="auth-sub">Masuk untuk mengakses data</div>
+    <div class="fg">
+      <label>Email</label>
+      <input id="authEmail" type="email" autocomplete="username" placeholder="email@contoh.com">
+    </div>
+    <div class="fg">
+      <label>Password</label>
+      <input id="authPass" type="password" autocomplete="current-password" placeholder="••••••••">
+    </div>
+    <button class="btn-save" id="authBtn" style="width:100%;padding:14px">Masuk</button>
+    <div class="auth-err" id="authErr"></div>
+  </div>
+</div>
+
+<header>
+  <div class="head-top">
+    <div class="logo">HTL &amp; Jualan Mobil</div>
+    <div class="sync"><span class="sync-dot" id="syncDot"></span><span id="syncText">Sync…</span><button class="btn-logout" id="btnLogout" style="display:none">Keluar</button></div>
+  </div>
+  <div class="last-update" id="lastUpdate">Terakhir diperbarui: <b>—</b></div>
+
+  <div class="actions">
+    <button class="btn btn-primary" id="btnImport">⬆️ Import Excel</button>
+    <button class="btn btn-ghost" id="btnAdd">➕ Tambah</button>
+    <button class="btn btn-ghost" id="btnExport">⬇️ Export</button>
+    <button class="btn btn-ghost" id="btnAnalisa">📊 Analisa</button>
+  </div>
+
+  <div class="search-wrap">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+    <input type="search" id="searchInput" placeholder="Cari tipe / merk…">
+  </div>
+
+  <div class="stats" id="stats"></div>
+</header>
+
+<main>
+  <!-- FILTER -->
+  <div class="filter-section" id="filterSection" style="display:none">
+    <div class="filter-head">
+      <span class="filter-title">Filter</span>
+      <button class="btn-reset" id="btnResetFilter">Reset semua</button>
+    </div>
+    <!-- tombol dropdown diisi oleh JS (buildFilters) -->
+    <div class="filter-bar" id="filterBar"></div>
+    <!-- chip filter yang lagi aktif, bisa dimatikan satu-satu -->
+    <div class="act-row" id="actRow"></div>
+  </div>
+
+  <div class="result-bar" id="resultBar" style="display:none">
+    <span id="resultCount"></span>
+    <span id="sortInfo">Urut: terakhir diupdate</span>
+  </div>
+
+  <div id="list"></div>
+</main>
+
+<!-- ===== MODAL: TAMBAH / EDIT ===== -->
+<div class="overlay" id="formOverlay">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="formTitle">Tambah Unit</div>
+    <div class="fg">
+      <label>Area</label>
+      <select id="fArea"><option value="DKI">DKI</option><option value="NON DKI">NON DKI</option></select>
+    </div>
+    <div class="fg">
+      <label>Merk</label>
+      <input id="fMerk" placeholder="mis. DAIHATSU" autocomplete="off">
+    </div>
+    <div class="fg">
+      <label>Tipe Detail</label>
+      <input id="fTipe" placeholder="mis. DAIHATSU XENIA R 1.3" autocomplete="off">
+    </div>
+    <div class="fg-row">
+      <div class="fg">
+        <label>Transmisi</label>
+        <select id="fTrans"><option value="AT">AT</option><option value="MT">MT</option></select>
+      </div>
+      <div class="fg">
+        <label>Tahun</label>
+        <input id="fTahun" type="number" inputmode="numeric" placeholder="2024">
+      </div>
+    </div>
+    <div class="fg">
+      <label>Harga (Rp)</label>
+      <input id="fHarga" type="number" inputmode="numeric" placeholder="134000000">
+      <div class="hint">Isi rupiah penuh, mis. 134000000</div>
+    </div>
+    <div class="fg">
+      <label>HTL (Rp) — opsional</label>
+      <input id="fHtl" type="number" inputmode="numeric" placeholder="boleh dikosongkan">
+      <div class="hint">Diisi manual. Kosongin dulu juga nggak apa-apa.</div>
+    </div>
+    <div class="sheet-btns">
+      <button class="btn-cancel" id="formCancel">Batal</button>
+      <button class="btn-save" id="formSave">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: IMPORT EXCEL ===== -->
+<div class="overlay" id="importOverlay">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Import / Perbarui dari Excel</div>
+    <div class="imp-drop" id="impDrop">
+      <div style="font-size:30px;margin-bottom:8px">📄</div>
+      <div style="font-weight:700;color:var(--text)">Ketuk untuk pilih file Excel</div>
+      <div style="font-size:12px;margin-top:4px">Format kolom: Area · Merk · Tipe Detail · Transmisi · Thn · Harga</div>
+    </div>
+    <input type="file" id="impFile" accept=".xlsx,.xls" style="display:none">
+    <div class="imp-info" id="impInfo"></div>
+    <div class="imp-err" id="impErr"></div>
+    <div class="sheet-btns" style="margin-top:16px">
+      <button class="btn-cancel" id="impCancel">Tutup</button>
+      <button class="btn-save" id="impConfirm" style="display:none">Terapkan</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: ANALISA ===== -->
+<div class="overlay" id="anaOverlay">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">📊 Analisa</div>
+    <div class="ana-tabs">
+      <button class="ana-tab on" data-tab="dep">Depresiasi</button>
+      <button class="ana-tab" data-tab="area">DKI vs Non</button>
+      <button class="ana-tab" data-tab="peluang">Di bawah pasar</button>
+    </div>
+    <div id="anaBody"></div>
+    <div class="sheet-btns" style="grid-template-columns:1fr;margin-top:14px">
+      <button class="btn-cancel" id="anaClose">Tutup</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PANEL DROPDOWN FILTER (dipakai bergantian oleh semua filter) ===== -->
+<div class="drop-overlay" id="dropOverlay">
+  <div class="drop-panel" id="dropPanel">
+    <div class="drop-head"><div class="drop-handle"></div><span class="drop-title" id="dropTitle"></span></div>
+    <div class="drop-search" id="dropSearchWrap">
+      <input type="text" id="dropSearch" placeholder="Ketik untuk cari&hellip;" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+    </div>
+    <div class="drop-list" id="dropList"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+/* ============================================================
+   FIREBASE — project & node yang sama dengan app lama (htldanjual / "mobil")
+   ============================================================ */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, onValue, push, set, update, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyB67bDvGa6XAM59w1PFUONsFEQgKcxVyuM",
+  authDomain: "htldanjual.firebaseapp.com",
+  databaseURL: "https://htldanjual-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "htldanjual",
+  storageBucket: "htldanjual.firebasestorage.app",
+  messagingSenderId: "978713261279",
+  appId: "1:978713261279:web:660f05b255e9beffe3656a",
+  measurementId: "G-RT8NM3TWDZ"
+};
+const app = initializeApp(firebaseConfig);
+const db  = getDatabase(app);
+const auth = getAuth(app);
+const mobilRef = ref(db, "mobil");
+
+/* ============================================================
+   STATE
+   ============================================================ */
+let allData = {};                                   // { firebaseKey: record }
+let filters = { area:null, merk:null, model:null, tipe:null, transmisi:null, tahunMin:null, tahunMax:null };  // filter aktif (tahun sekarang RENTANG)
+let editKey = null;                                 // key yg lagi diedit (null = mode tambah)
+
+/* ============================================================
+   HELPER
+   ============================================================ */
+// Ubah apapun jadi angka bersih (buang "Rp", titik, spasi, dll)
+function toNum(v){
+  if(v===null||v===undefined||v==="") return null;
+  if(typeof v==="number") return v;
+  const n = parseInt(String(v).replace(/[^\d]/g,""),10);
+  return isNaN(n) ? null : n;
+}
+// Format rupiah penuh: 134000000 -> "Rp 134.000.000"
+function rp(n){ return n==null ? null : "Rp "+Number(n).toLocaleString("id-ID"); }
+// Versi ringkas juta: 134000000 -> "134 jt"
+function jt(n){ return n==null ? "" : Math.round(Number(n)/1e6)+" jt"; }
+// Ringkas daftar harga jadi min/max/rata-rata
+function aggHarga(prices){
+  if(!prices.length) return { avg:null, min:null, max:null };
+  const min = Math.min(...prices), max = Math.max(...prices);
+  const avg = Math.round(prices.reduce((a,b)=>a+b,0)/prices.length);
+  return { avg, min, max };
+}
+// Teks kecil di bawah harga kartu: tampilkan rentang + jumlah unit kalau stok >1 & harganya beda
+function hargaSub(d){
+  if(d.harga==null) return "";
+  if(d.count>1 && d.hargaMin!=null && d.hargaMin!==d.hargaMax){
+    return `${jt(d.hargaMin)}–${jt(d.hargaMax)} · ${d.count} unit`;
+  }
+  return jt(d.harga) + (d.count>1 ? ` · ${d.count} unit` : "");
+}
+// Rapikan teks jadi UPPERCASE
+function up(s){ return String(s==null?"":s).trim().toUpperCase(); }
+// Amankan teks sebelum ditempel ke innerHTML.
+// Data dari Excel bisa mengandung & < > " (mis. "S&B", ukuran 12"), kalau nggak
+// di-escape HTML-nya bisa rusak / tag nyasar.
+const ESC_MAP = {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"};
+function esc(v){ return String(v==null?"":v).replace(/[&<>"]/g, c=>ESC_MAP[c]); }
+// Normalisasi transmisi ke AT / MT
+function normTrans(v){
+  const s = up(v);
+  if(/(^|\W)(AT|MATIC|AUTOMATIC|CVT)(\W|$)/.test(s) || s==="AT") return "AT";
+  if(/(^|\W)(MT|MANUAL)(\W|$)/.test(s) || s==="MT") return "MT";
+  return s || "-";
+}
+// Kunci spesifikasi unik — dipakai buat mempertahankan HTL saat import ulang
+function specKey(r){
+  return [up(r.area),up(r.merk),up(r.tipeDetail),up(r.transmisi),r.tahun].join("|");
+}
+// Normalisasi penulisan biar varian sama nyatu di FILTER (CR-V=CRV, GRANMAX=GRAN MAX, XL-7=XL7).
+// Cuma dipakai buat MENGELOMPOKKAN di filter — teks asli di kartu & database TIDAK diubah.
+const NAME_FIX = [
+  [/\bGRA?ND?\s*MAX\b/g, "GRAN MAX"]   // GRANMAX / GRAND MAX / GRAN MAX -> "GRAN MAX"
+];
+function normStr(s){
+  let t = up(s).replace(/-/g,"").replace(/\s+/g," ").trim();  // buang hyphen (CR-V->CRV), rapikan spasi
+  NAME_FIX.forEach(([re,rep])=>{ t = t.replace(re,rep); });   // samain nama compound
+  return t.replace(/\s+/g," ").trim();
+}
+// Kata yg BUKAN nama model & bukan varian pembeda (body code / transmisi) -> bikin ekstraksi berhenti.
+// CATATAN: kata varian pembeda (SATYA, TURBO, PRESTIGE, NEW, ULTIMATE, VRZ, dll) SENGAJA TIDAK ada di sini,
+// karena itu mobil/harga beda -> harus tetap jadi model terpisah.
+const MODEL_TRIM = new Set(["AC","PS","PU","MB","BV","MT","AT","CVT","TRD","DELUXE","DLX","PLUS","SPORT","STD","GR","MC","VVTI","ABS","MPV","MINIBUS","PICKUP","BOX","BLINDVAN","DUAL","FACELIFT"]);
+// Alias HANYA untuk beda penulisan / nama panjang-pendek yang MOBILNYA SAMA (bukan varian beda).
+// Kunci & nilai HARUS huruf besar. Gampang ditambah kalau nemu yg lain.
+const MODEL_ALIAS = {
+  "KIJANG INNOVA":"INNOVA",
+  "COROLLA ALTIS":"ALTIS",
+  "MAZDA2":"MAZDA 2",
+  "2":"MAZDA 2"
+};
+// Ambil "model" dari tipe detail. mis. "AYLA X 1.0 MT"->"AYLA", "GRAN MAX PU 1.5"->"GRAN MAX"
+function modelOf(d){
+  let t = normStr(d.tipeDetail);
+  const mk = up(d.merk);
+  if(mk && t.startsWith(mk+" ")) t = t.slice(mk.length+1);   // buang prefix merk kalau ikut nempel
+  const name = [];
+  for(const tok of t.split(" ")){
+    if(/\d/.test(tok)) break;        // ketemu angka (1.3/cc) -> mulai grade, berhenti
+    if(tok.length<3) break;          // token pendek (X, R, PU) -> grade, berhenti
+    if(MODEL_TRIM.has(tok)) break;   // kata trim -> berhenti
+    if(tok!==name[name.length-1]) name.push(tok);   // skip kata dobel beruntun (RUSH RUSH -> RUSH)
+  }
+  const m = name.join(" ") || t.split(" ")[0] || t;
+  return MODEL_ALIAS[m] || m;        // samain nama via alias kalau ada
+}
+// "Tipe bersih" untuk chip filter: buang token transmisi (MT/AT/CVT) di manapun posisinya.
+// Cuma dipakai buat MENGELOMPOKKAN di filter — data asli (tipe lengkap) TIDAK diubah.
+function tipeBersih(d){
+  let t = normStr(d.tipeDetail);
+  const mk = up(d.merk);
+  if(mk && t.startsWith(mk+" ")) t = t.slice(mk.length+1);   // buang prefix merk (mis. data lama "DAIHATSU AYLA..")
+  return t.split(" ")
+    .filter(tok=> !/^(MT|AT|CVT|MATIC|MANUAL|AUTOMATIC|A\/T|M\/T)$/.test(tok)   // buang transmisi
+              && !/^(19|20)\d{2}$/.test(tok))                                    // buang tahun yg nyelip di tipe
+    .join(" ").trim() || t;
+}
+// Waktu relatif buat label "diupdate"
+function relTime(iso){
+  if(!iso) return "-";
+  const d = new Date(iso), now = new Date(), diff = (now-d)/1000;
+  if(diff<60) return "baru saja";
+  if(diff<3600) return Math.floor(diff/60)+" mnt lalu";
+  if(diff<86400) return Math.floor(diff/3600)+" jam lalu";
+  if(diff<172800) return "kemarin";
+  return d.toLocaleDateString("id-ID",{day:"2-digit",month:"short",year:"numeric"});
+}
+function fullTime(iso){
+  if(!iso) return "—";
+  const d = new Date(iso);
+  return d.toLocaleDateString("id-ID",{day:"2-digit",month:"short",year:"numeric"})+
+         " "+d.toLocaleTimeString("id-ID",{hour:"2-digit",minute:"2-digit"});
+}
+// Tanggal panjang untuk stempel di kartu, mis. "13 Juli 2026, 21.58"
+function tglCard(iso){
+  if(!iso) return "-";
+  const d = new Date(iso);
+  return d.toLocaleDateString("id-ID",{day:"numeric",month:"long",year:"numeric"})+
+         ", "+d.toLocaleTimeString("id-ID",{hour:"2-digit",minute:"2-digit"});
+}
+// Toast kecil
+let toastT;
+function toast(msg){
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.classList.add("show");
+  clearTimeout(toastT); toastT = setTimeout(()=>t.classList.remove("show"),2200);
+}
+
+/* ============================================================
+   FIREBASE LISTENER — realtime, TANPA auto-seed. Jalan HANYA setelah login.
+   ============================================================ */
+let listenerStarted = false;
+function startListener(){
+  if(listenerStarted) return;      // pasang sekali aja walau auth state berubah
+  listenerStarted = true;
+  onValue(mobilRef, (snap)=>{
+    document.getElementById("syncDot").className = "sync-dot";
+    document.getElementById("syncText").textContent = "Sync realtime";
+    allData = snap.val() || {};   // kalau null -> objek kosong, JANGAN isi data contoh
+    buildFilters();
+    renderStats();
+    renderLastUpdate();
+    render();
+  }, ()=>{
+    document.getElementById("syncDot").className = "sync-dot offline";
+    document.getElementById("syncText").textContent = "Offline";
+  });
+}
+
+/* ============================================================
+   AUTH — email+password. App cuma kebuka setelah login.
+   ============================================================ */
+// Pantau status login: ada user -> buka app; nggak ada -> tampilkan layar login
+onAuthStateChanged(auth, (user)=>{
+  if(user){
+    document.getElementById("authScreen").style.display = "none";
+    document.getElementById("btnLogout").style.display = "inline-flex";
+    startListener();
+  } else {
+    document.getElementById("authScreen").style.display = "flex";
+    document.getElementById("btnLogout").style.display = "none";
+  }
+});
+
+function showAuthErr(msg){ const e=document.getElementById("authErr"); e.textContent="⚠️ "+msg; e.style.display="block"; }
+// Terjemahin kode error Firebase ke bahasa manusia
+function authErrMsg(code){
+  if(["auth/invalid-credential","auth/wrong-password","auth/user-not-found"].includes(code)) return "Email atau password salah";
+  if(code==="auth/invalid-email") return "Format email nggak valid";
+  if(code==="auth/too-many-requests") return "Terlalu banyak percobaan, coba lagi beberapa saat";
+  if(code==="auth/network-request-failed") return "Nggak ada koneksi internet";
+  return "Gagal masuk ("+code+")";
+}
+function doLogin(){
+  const email = document.getElementById("authEmail").value.trim();
+  const pass  = document.getElementById("authPass").value;
+  document.getElementById("authErr").style.display="none";
+  if(!email || !pass){ showAuthErr("Email & password wajib diisi"); return; }
+  const btn = document.getElementById("authBtn");
+  btn.disabled = true; btn.textContent = "Masuk…";
+  signInWithEmailAndPassword(auth, email, pass)
+    .catch(err=>showAuthErr(authErrMsg(err.code)))   // sukses -> onAuthStateChanged yg buka app
+    .finally(()=>{ btn.disabled=false; btn.textContent="Masuk"; });
+}
+document.getElementById("authBtn").addEventListener("click", doLogin);
+document.getElementById("authPass").addEventListener("keydown", e=>{ if(e.key==="Enter") doLogin(); });
+document.getElementById("btnLogout").addEventListener("click", ()=>{
+  if(confirm("Keluar dari app?")) signOut(auth);
+});
+
+/* ============================================================
+   RENDER STATISTIK (chip di header)
+   ============================================================ */
+function renderStats(){
+  const arr = Object.values(allData);
+  const merks = new Set(arr.map(d=>up(d.merk))).size;
+  const dki   = arr.filter(d=>up(d.area)==="DKI").length;
+  const nondki= arr.filter(d=>up(d.area)==="NON DKI").length;
+  const withHtl = arr.filter(d=>d.htl!=null).length;
+  const el = document.getElementById("stats");
+  if(!arr.length){ el.innerHTML=""; return; }
+  el.innerHTML =
+    `<span class="stat-chip"><b>${arr.length}</b> unit</span>`+
+    `<span class="stat-chip"><b>${merks}</b> merk</span>`+
+    `<span class="stat-chip">DKI <b>${dki}</b></span>`+
+    `<span class="stat-chip">Non DKI <b>${nondki}</b></span>`+
+    `<span class="stat-chip">HTL terisi <b>${withHtl}</b></span>`;
+}
+
+/* ============================================================
+   RENDER "TERAKHIR DIPERBARUI" (poin 3)
+   ============================================================ */
+function renderLastUpdate(){
+  const arr = Object.values(allData);
+  const el = document.getElementById("lastUpdate");
+  if(!arr.length){ el.innerHTML = "Terakhir diperbarui: <b>—</b>"; return; }
+  // ambil updatedAt paling baru dari seluruh data
+  const latest = arr.map(d=>d.updatedAt).filter(Boolean).sort().slice(-1)[0];
+  el.innerHTML = `Terakhir diperbarui: <b>${fullTime(latest)}</b>`;
+}
+
+/* ============================================================
+   FILTER — dropdown searchable, bertingkat (cascading)
+   Cara kerja: opsi tiap dropdown dihitung dari data yang LOLOS semua
+   filter LAIN. Jadi begitu pilih Merk, isi Model/Tipe otomatis nyusut.
+   ============================================================ */
+
+// daftar dropdown yang tampil di filter bar (urut kiri->kanan)
+const FILTER_DEFS = [
+  { f:"area",      label:"Area",      all:"Semua area"      },
+  { f:"merk",      label:"Merk",      all:"Semua merk"      },
+  { f:"model",     label:"Model",     all:"Semua model"     },
+  { f:"tipe",      label:"Tipe",      all:"Semua tipe"      },
+  { f:"transmisi", label:"Transmisi", all:"AT & MT"         },
+  { f:"tahunMin",  label:"Thn dari",  all:"Paling lama"     },
+  { f:"tahunMax",  label:"Thn s/d",   all:"Paling baru"     }
+];
+// filter yang nilainya tunggal (tahun ditangani terpisah karena rentang)
+const SINGLE = ["area","merk","model","tipe","transmisi"];
+let optCache = {};   // { field: [{v, n}] } -> daftar opsi + jumlah unit per opsi
+
+// ambil nilai satu field dari 1 record (sudah dinormalisasi)
+function keyOf(f, d){
+  if(f==="area")      return up(d.area);
+  if(f==="merk")      return up(d.merk);
+  if(f==="model")     return modelOf(d);
+  if(f==="tipe")      return tipeBersih(d);
+  if(f==="transmisi") return normTrans(d.transmisi);
+  return null;
+}
+// true kalau record lolos semua filter KECUALI satu field
+// (dikecualikan biar daftar opsi field itu nggak nyusut gara-gara dirinya sendiri)
+function passExcept(d, except){
+  for(const f of SINGLE){
+    if(f===except) continue;
+    if(filters[f]!=null && keyOf(f,d)!==filters[f]) return false;
+  }
+  if(except!=="tahun"){
+    const y = Number(d.tahun);
+    if(filters.tahunMin!=null && !(y>=filters.tahunMin)) return false;
+    if(filters.tahunMax!=null && !(y<=filters.tahunMax)) return false;
+  }
+  return true;
+}
+
+// Hitung ulang semua opsi + gambar ulang filter bar. Dipanggil tiap data/filter berubah.
+function buildFilters(){
+  const arr = Object.values(allData);
+  document.getElementById("filterSection").style.display = arr.length ? "block" : "none";
+  document.getElementById("resultBar").style.display     = arr.length ? "flex"  : "none";
+
+  // hitung opsi; kalau ada filter aktif yang nilainya sudah nggak ada di data,
+  // filter itu dibersihkan lalu opsi dihitung ulang (maks 3x, jaga-jaga)
+  for(let putaran=0; putaran<3; putaran++){
+    optCache = {};
+    SINGLE.forEach(f=>{
+      const m = new Map();
+      arr.filter(d=>passExcept(d,f)).forEach(d=>{
+        const v = keyOf(f,d);
+        if(v==null || v==="" || v==="-") return;
+        m.set(v, (m.get(v)||0)+1);       // hitung berapa unit per opsi
+      });
+      optCache[f] = [...m].map(([v,n])=>({v,n}))
+                          .sort((a,b)=>String(a.v).localeCompare(String(b.v)));
+    });
+    // daftar tahun dipakai bareng oleh "Thn dari" & "Thn s/d"
+    const ym = new Map();
+    arr.filter(d=>passExcept(d,"tahun")).forEach(d=>{
+      if(d.tahun==null) return;
+      const y = Number(d.tahun);
+      ym.set(y, (ym.get(y)||0)+1);
+    });
+    const years = [...ym].map(([v,n])=>({v,n})).sort((a,b)=>b.v-a.v);   // terbaru di atas
+    optCache.tahunMin = years;
+    optCache.tahunMax = years;
+
+    // buang filter yang nilainya sudah nggak valid
+    let adaYangDibuang = false;
+    SINGLE.forEach(f=>{
+      if(filters[f]!=null && !optCache[f].some(o=>o.v===filters[f])){ filters[f]=null; adaYangDibuang=true; }
+    });
+    if(!adaYangDibuang) break;
+  }
+
+  // gambar tombol dropdown
+  const bar = document.getElementById("filterBar");
+  bar.innerHTML = FILTER_DEFS.map(def=>`
+    <div class="fdrop${filters[def.f]!=null?" on":""}" data-field="${def.f}">
+      <button class="fdrop-btn" type="button">
+        <span class="fdrop-lbl">${def.label}</span>
+        <span class="fdrop-val">${filters[def.f]!=null ? esc(filters[def.f]) : def.all}</span>
+      </button>
+    </div>`).join("");
+  bar.querySelectorAll(".fdrop").forEach(el=>{
+    el.querySelector(".fdrop-btn").addEventListener("click", ()=>openDrop(el.dataset.field, el));
+  });
+
+  renderActiveChips();
+}
+
+// Chip "filter aktif" di bawah bar — tiap chip ada tombol × sendiri
+function renderActiveChips(){
+  const wrap = document.getElementById("actRow");
+  const aktif = FILTER_DEFS.filter(def=>filters[def.f]!=null);
+  document.getElementById("btnResetFilter").style.display = aktif.length ? "block" : "none";
+  wrap.innerHTML = aktif.map(def=>
+    `<span class="act-chip">${def.label}: ${esc(filters[def.f])}<span class="act-x" data-clr="${def.f}">&times;</span></span>`
+  ).join("");
+  wrap.querySelectorAll("[data-clr]").forEach(x=>{
+    x.addEventListener("click", ()=>{ filters[x.dataset.clr]=null; buildFilters(); render(); });
+  });
+}
+
+/* ---------- panel dropdown (satu panel dipakai bergantian) ---------- */
+const dropOverlay   = document.getElementById("dropOverlay");
+const dropPanel     = document.getElementById("dropPanel");
+const dropTitle     = document.getElementById("dropTitle");
+const dropSearch    = document.getElementById("dropSearch");
+const dropSearchWrap= document.getElementById("dropSearchWrap");
+const dropList      = document.getElementById("dropList");
+let dropField = null;                                  // field yang lagi dibuka
+const isHp = ()=> window.innerWidth < 720;             // <720px -> mode bottom sheet
+
+function openDrop(field, anchorEl){
+  dropField = field;
+  dropTitle.textContent = FILTER_DEFS.find(d=>d.f===field).label;
+  dropSearch.value = "";
+  renderDropList("");
+  dropOverlay.classList.add("show");
+
+  if(isHp()){
+    // bottom sheet: posisi & tinggi diatur CSS, jangan auto-focus biar keyboard nggak nutupin daftar
+    dropPanel.style.left = ""; dropPanel.style.top = ""; dropPanel.style.width = ""; dropPanel.style.maxHeight = "";
+    document.body.style.overflow = "hidden";        // kunci halaman biar jempol nggak nyeret background
+  }else{
+    // desktop: tempel di tombolnya, tinggi panel disesuaikan sisa ruang layar
+    const r      = anchorEl.getBoundingClientRect();
+    const lebar  = 280, jarak = 6, tepi = 10;
+    const bawah  = window.innerHeight - r.bottom - tepi;   // ruang kosong di bawah tombol
+    const atas   = r.top - tepi;                           // ruang kosong di atas tombol
+    const keBawah= bawah >= 200 || bawah >= atas;          // pilih arah yang ruangnya lebih lega
+    const tinggi = Math.max(160, Math.min(340, keBawah ? bawah : atas));
+
+    dropPanel.style.width     = lebar+"px";
+    dropPanel.style.maxHeight = tinggi+"px";               // <- kunci: panel nggak pernah lebih tinggi dari layar
+    dropPanel.style.left      = Math.max(8, Math.min(r.left, window.innerWidth-lebar-8))+"px";
+    dropPanel.style.top       = (keBawah ? r.bottom+jarak : r.top-tinggi-jarak)+"px";
+    // fokus cuma kalau kotak carinya memang tampil (opsi sedikit -> kotak cari disembunyikan)
+    if(dropSearchWrap.style.display !== "none") setTimeout(()=>dropSearch.focus(), 30);
+  }
+  dropList.scrollTop = 0;   // tiap buka, daftar selalu mulai dari atas
+}
+function closeDrop(){
+  dropOverlay.classList.remove("show");
+  document.body.style.overflow = "";   // buka lagi scroll halaman
+  dropField = null;
+}
+
+// Gambar isi panel. q = kata kunci pencarian di dalam panel.
+function renderDropList(q){
+  const def  = FILTER_DEFS.find(d=>d.f===dropField);
+  const list = optCache[dropField] || [];
+  const nq   = normStr(q);                                   // pakai normalisasi yg sama (CR-V = CRV)
+  const shown= nq ? list.filter(o=>normStr(o.v).includes(nq)) : list;
+  const cur  = filters[dropField];
+
+  // opsi "Semua" selalu di paling atas
+  let html = `<div class="drop-opt${cur==null?" sel":""}" data-v="__ALL__"><span>${def.all}</span></div>`;
+  html += shown.map(o=>
+    `<div class="drop-opt${String(cur)===String(o.v)?" sel":""}" data-v="${esc(o.v)}">`+
+    `<span>${esc(o.v)}</span><span class="drop-n">${o.n}</span></div>`
+  ).join("");
+  if(!shown.length) html += `<div class="drop-empty">Nggak ada yang cocok</div>`;
+
+  dropList.innerHTML = html;
+  dropList.querySelectorAll("[data-v]").forEach(el=>
+    el.addEventListener("click", ()=>pickDrop(el.dataset.v))
+  );
+  // kotak pencarian cuma muncul kalau opsinya banyak (Area/Transmisi nggak butuh)
+  dropSearchWrap.style.display = list.length > 8 ? "block" : "none";
+}
+
+function pickDrop(v){
+  const isTahun = (dropField==="tahunMin" || dropField==="tahunMax");
+  filters[dropField] = (v==="__ALL__") ? null : (isTahun ? Number(v) : v);
+  // kalau "dari" lebih besar dari "s/d", tukar — biar hasilnya nggak kosong
+  if(filters.tahunMin!=null && filters.tahunMax!=null && filters.tahunMin>filters.tahunMax){
+    const t = filters.tahunMin; filters.tahunMin = filters.tahunMax; filters.tahunMax = t;
+  }
+  closeDrop(); buildFilters(); render();
+}
+
+dropSearch.addEventListener("input", e=>renderDropList(e.target.value));
+// Enter = pilih hasil teratas, biar nggak perlu pindah ke mouse/jempol
+dropSearch.addEventListener("keydown", e=>{
+  if(e.key!=="Enter") return;
+  const teratas = dropList.querySelector('.drop-opt:not([data-v="__ALL__"])');
+  if(teratas) pickDrop(teratas.dataset.v);
+});
+dropOverlay.addEventListener("click", e=>{ if(!dropPanel.contains(e.target)) closeDrop(); });
+document.addEventListener("keydown", e=>{ if(e.key==="Escape" && dropField) closeDrop(); });
+// Tutup panel saat layar berubah UKURAN LEBARnya (rotasi / resize window).
+// Cek lebar penting: di HP, munculnya keyboard cuma mengubah TINGGI viewport dan
+// itu juga memicu "resize" — dulu bikin bottom sheet nutup sendiri pas mau ngetik.
+let lebarTerakhir = window.innerWidth;
+window.addEventListener("resize", ()=>{
+  const bedaLebar = Math.abs(window.innerWidth - lebarTerakhir);
+  lebarTerakhir = window.innerWidth;
+  if(dropField && bedaLebar > 40) closeDrop();
+});
+// Halaman digulir saat panel kebuka -> tutup, karena panel nempel ke koordinat tombol.
+// TAPI kalau yang digulir isi panelnya sendiri, jangan ditutup.
+// (listener ini pakai capture=true, jadi scroll dari elemen mana pun ikut ketangkep)
+window.addEventListener("scroll", (e)=>{
+  if(!dropField || isHp()) return;
+  if(e.target && e.target.nodeType===1 && dropPanel.contains(e.target)) return;  // scroll di dalam panel -> aman
+  closeDrop();
+}, true);
+
+// Reset semua = filter DAN kotak pencarian di header.
+// (dulu pencarian nggak ikut kereset -> bingung, "udah reset kok hasilnya masih nyaring")
+function resetSemuaFilter(){
+  filters = { area:null, merk:null, model:null, tipe:null, transmisi:null, tahunMin:null, tahunMax:null };
+  document.getElementById("searchInput").value = "";
+  buildFilters(); render();
+}
+document.getElementById("btnResetFilter").addEventListener("click", resetSemuaFilter);
+
+/* ============================================================
+   RENDER DAFTAR (kartu) — default urut TERAKHIR DIUPDATE (poin 3)
+   ============================================================ */
+document.getElementById("searchInput").addEventListener("input", render);
+
+function render(){
+  const q = document.getElementById("searchInput").value.toLowerCase().trim();
+  const words = q ? q.split(/\s+/) : [];
+
+  // ubah objek -> array [key, data], lalu saring
+  let entries = Object.entries(allData).filter(([,d])=>{
+    // filter tunggal (Area/Merk/Model/Tipe/Transmisi)
+    for(const f of SINGLE){
+      if(filters[f]!=null && keyOf(f,d)!==filters[f]) return false;
+    }
+    // filter tahun berupa rentang
+    const y = Number(d.tahun);
+    if(filters.tahunMin!=null && !(y>=filters.tahunMin)) return false;
+    if(filters.tahunMax!=null && !(y<=filters.tahunMax)) return false;
+    if(words.length){
+      const hay = [d.merk,d.tipeDetail,d.area,d.transmisi,String(d.tahun)].join(" ").toLowerCase();
+      if(!words.every(w=>hay.includes(w))) return false;
+    }
+    return true;
+  });
+
+  // URUT: updatedAt terbaru di atas (data yg baru diupdate muncul duluan)
+  entries.sort((a,b)=> String(b[1].updatedAt||"").localeCompare(String(a[1].updatedAt||"")));
+
+  const list = document.getElementById("list");
+  const total = Object.keys(allData).length;
+
+  // empty state
+  if(!total){
+    list.innerHTML = `<div class="empty">
+      <div class="big">🚗</div>
+      <h3>Belum ada data</h3>
+      <p>Ketuk <b>Import Excel</b> di atas untuk isi data<br>dari file format kamu (Area · Merk · Tipe Detail · Transmisi · Thn · Harga).</p>
+    </div>`;
+    return;
+  }
+  document.getElementById("resultCount").textContent = `${entries.length} dari ${total} unit`;
+
+  if(!entries.length){
+    list.innerHTML = `<div class="empty"><div class="big">🔍</div><h3>Nggak ada yang cocok</h3>`+
+      `<p>Kombinasi filter/kata kunci ini nggak ada isinya.</p>`+
+      `<button class="btn btn-ghost" id="btnResetEmpty" style="margin-top:14px">↺ Reset filter &amp; pencarian</button></div>`;
+    document.getElementById("btnResetEmpty").addEventListener("click", resetSemuaFilter);
+    return;
+  }
+
+  // waktu update terbaru -> buat badge "baru"
+  const newestTime = entries[0][1].updatedAt;
+
+  list.innerHTML = entries.map(([key,d])=>{
+    const htlFilled = d.htl!=null;
+    const isNew = d.updatedAt && d.updatedAt===newestTime;
+    return `
+    <div class="car-card">
+      <div class="card-body">
+        <div class="card-top">
+          <div>
+            <div class="car-tipe">${esc(d.tipeDetail)||"(tanpa tipe)"}</div>
+            <div class="car-merk">${esc(d.merk)||"-"}</div>
+          </div>
+          <div class="badges">
+            ${isNew?'<span class="bdg bdg-new">baru</span>':''}
+            <span class="bdg bdg-year">${d.tahun||"-"}</span>
+            <span class="bdg bdg-trans">${normTrans(d.transmisi)}</span>
+            <span class="bdg bdg-area">${esc(up(d.area))||"-"}</span>
+          </div>
+        </div>
+        <div class="price-grid">
+          <div class="price-box">
+            <div class="price-lbl">${d.count>1 ? "Harga (rata²)" : "Harga"}</div>
+            <div class="price-val harga">${rp(d.harga)||"-"}</div>
+            <div class="price-sub">${hargaSub(d)}</div>
+          </div>
+          ${htlFilled
+            ? `<div class="price-box">
+                 <div class="price-lbl">HTL</div>
+                 <div class="price-val htl">${rp(d.htl)}</div>
+                 <div class="price-sub">${jt(d.htl)}</div>
+               </div>`
+            : `<div class="price-box htl-empty" data-edit="${key}">
+                 <div class="price-lbl">HTL</div>
+                 <div class="htl-hint">＋ isi HTL</div>
+               </div>`
+          }
+        </div>
+      </div>
+      <div class="card-foot">
+        <span class="upd">🕘 Diupdate ${tglCard(d.updatedAt)}</span>
+        <div class="foot-btns">
+          <button class="btn-icon" data-edit="${key}">✏️ Edit</button>
+          <button class="btn-icon del" data-del="${key}">🗑️</button>
+        </div>
+      </div>
+    </div>`;
+  }).join("");
+
+  // pasang event tombol (addEventListener, bukan inline onclick — sesuai kebiasaan kamu)
+  list.querySelectorAll("[data-edit]").forEach(b=>b.addEventListener("click",()=>openForm(b.dataset.edit)));
+  list.querySelectorAll("[data-del]").forEach(b=>b.addEventListener("click",()=>hapusUnit(b.dataset.del)));
+}
+
+/* ============================================================
+   TAMBAH / EDIT UNIT
+   ============================================================ */
+function openForm(key){
+  editKey = key || null;
+  document.getElementById("formTitle").textContent = key ? "Edit Unit" : "Tambah Unit";
+  const d = key ? allData[key] : {};
+  document.getElementById("fArea").value  = up(d.area)==="NON DKI" ? "NON DKI" : (up(d.area) ? up(d.area) : "DKI");
+  document.getElementById("fMerk").value  = d.merk||"";
+  document.getElementById("fTipe").value  = d.tipeDetail||"";
+  document.getElementById("fTrans").value = normTrans(d.transmisi)==="MT" ? "MT" : "AT";
+  document.getElementById("fTahun").value = d.tahun||"";
+  document.getElementById("fHarga").value = d.harga??"";
+  document.getElementById("fHtl").value   = d.htl??"";
+  document.getElementById("formOverlay").classList.add("show");
+}
+document.getElementById("btnAdd").addEventListener("click", ()=>openForm(null));
+document.getElementById("formCancel").addEventListener("click", ()=>document.getElementById("formOverlay").classList.remove("show"));
+document.getElementById("formOverlay").addEventListener("click",(e)=>{ if(e.target.id==="formOverlay") e.currentTarget.classList.remove("show"); });
+
+document.getElementById("formSave").addEventListener("click", ()=>{
+  const h = toNum(document.getElementById("fHarga").value);
+  const prev = editKey ? allData[editKey] : null;
+  // Kalau harga tidak diubah, pertahankan agregat (min/max/jumlah) yg ada.
+  // Kalau diubah manual, jadikan harga tunggal (min=max=harga, 1 unit).
+  let hargaMin = h, hargaMax = h, count = 1;
+  if(prev && h===prev.harga && prev.count){
+    hargaMin = prev.hargaMin ?? h;
+    hargaMax = prev.hargaMax ?? h;
+    count    = prev.count;
+  }
+  const rec = {
+    area:      document.getElementById("fArea").value,
+    merk:      up(document.getElementById("fMerk").value),
+    tipeDetail:document.getElementById("fTipe").value.trim(),
+    transmisi: document.getElementById("fTrans").value,
+    tahun:     toNum(document.getElementById("fTahun").value),
+    harga:     h,
+    hargaMin, hargaMax, count,
+    htl:       toNum(document.getElementById("fHtl").value),   // null kalau kosong
+    updatedAt: new Date().toISOString()                        // stempel waktu -> naik ke atas
+  };
+  if(!rec.merk || !rec.tipeDetail){ toast("Merk & Tipe Detail wajib diisi"); return; }
+
+  if(editKey){
+    set(ref(db,"mobil/"+editKey), rec);   // update record yg ada
+    toast("✅ Data diperbarui");
+  } else {
+    push(mobilRef, rec);                   // tambah baru
+    toast("✅ Unit ditambahkan");
+  }
+  document.getElementById("formOverlay").classList.remove("show");
+});
+
+function hapusUnit(key){
+  const d = allData[key];
+  if(confirm(`Hapus "${d.tipeDetail}" (${d.tahun})?`)){
+    remove(ref(db,"mobil/"+key));
+    toast("🗑️ Unit dihapus");
+  }
+}
+
+/* ============================================================
+   IMPORT EXCEL — format kamu, dgn MEMPERTAHANKAN HTL manual
+   ============================================================ */
+const importOverlay = document.getElementById("importOverlay");
+const impDrop = document.getElementById("impDrop");
+const impFile = document.getElementById("impFile");
+const impInfo = document.getElementById("impInfo");
+const impErr  = document.getElementById("impErr");
+const impConfirm = document.getElementById("impConfirm");
+let importPlan = null;   // rencana merge: { adds:[...], updates:[{key,harga}] }
+
+document.getElementById("btnImport").addEventListener("click", ()=>{
+  resetImport();
+  importOverlay.classList.add("show");
+});
+document.getElementById("impCancel").addEventListener("click", ()=>importOverlay.classList.remove("show"));
+importOverlay.addEventListener("click",(e)=>{ if(e.target.id==="importOverlay") importOverlay.classList.remove("show"); });
+impDrop.addEventListener("click", ()=>impFile.click());
+impDrop.addEventListener("dragover",(e)=>{e.preventDefault();impDrop.classList.add("hover");});
+impDrop.addEventListener("dragleave",()=>impDrop.classList.remove("hover"));
+impDrop.addEventListener("drop",(e)=>{e.preventDefault();impDrop.classList.remove("hover");if(e.dataTransfer.files[0])handleFile(e.dataTransfer.files[0]);});
+impFile.addEventListener("change",(e)=>{ if(e.target.files[0]) handleFile(e.target.files[0]); });
+
+function resetImport(){
+  importPlan = null;
+  impInfo.style.display="none"; impErr.style.display="none";
+  impConfirm.style.display="none"; impFile.value="";
+}
+
+// alias nama kolom -> field standar (biar fleksibel walau header agak beda)
+const HEADER_ALIAS = {
+  area:      ["area","wilayah","lokasi"],
+  merk:      ["merk","merek","brand"],
+  tipeDetail:["tipedetail","tipe","type","model","tipelengkap","namaunit","unit"],
+  transmisi: ["transmisi","trans","transmission","tr"],
+  tahun:     ["thn","tahun","year","th"],
+  harga:     ["harga","price","hrg","nilai","hargajual","credit","kredit","plafon","plafond"]
+};
+function normHead(s){ return String(s==null?"":s).toLowerCase().replace(/[^a-z0-9]/g,""); }
+
+function handleFile(file){
+  resetImport();
+  const reader = new FileReader();
+  reader.onload = (e)=>{
+    try{
+      const wb = XLSX.read(e.target.result, {type:"array"});
+      const recs = parseWorkbook(wb);
+      if(!recs.length){ showImpErr("Nggak nemu baris data yang valid. Pastikan ada kolom Merk, Tipe Detail & Harga."); return; }
+
+      // 1) GABUNG baris spek-sama di Excel jadi 1 -> hitung rentang, rata-rata, jumlah unit
+      //    (file stok bisa punya banyak unit spek sama dgn harga beda -> nggak ada yg dibuang)
+      const groups = {};
+      recs.forEach(r=>{ const k=specKey(r); (groups[k]=groups[k]||[]).push(r); });
+      const excelRecs = Object.values(groups).map(rows=>{
+        const b = rows[0];
+        const prices = rows.map(x=>x.harga).filter(v=>v!=null);
+        const s = aggHarga(prices);
+        return {
+          area:b.area, merk:b.merk, tipeDetail:b.tipeDetail, transmisi:b.transmisi, tahun:b.tahun,
+          harga:s.avg, hargaMin:s.min, hargaMax:s.max, count:rows.length,
+          htl:null, updatedAt:b.updatedAt
+        };
+      });
+
+      // 2) peta data yg SUDAH ADA di app: specKey -> {key, data}
+      const existing = {};
+      Object.entries(allData).forEach(([key,d])=>{ existing[specKey(d)] = {key, d}; });
+
+      // 3) susun rencana: TAMBAH (baru) / UPDATE (harga/rentang/jumlah berubah) / TETAP (sama)
+      const adds = [], updates = [];
+      let unchanged = 0;
+      excelRecs.forEach(r=>{
+        const ex = existing[specKey(r)];
+        if(!ex){ adds.push(r); return; }               // belum ada -> tambah
+        if(r.harga==null){ unchanged++; return; }       // stok tanpa harga -> jangan timpa
+        const d = ex.d;
+        const berubah = r.harga!==(d.harga??null) || r.hargaMin!==(d.hargaMin??null) ||
+                        r.hargaMax!==(d.hargaMax??null) || r.count!==(d.count??null);
+        if(berubah) updates.push({ key:ex.key, r });    // ada & beda -> edit
+        else unchanged++;                               // ada & sama -> biarkan
+      });
+
+      importPlan = { adds, updates };
+      impInfo.style.display="block";
+      impInfo.innerHTML =
+        `Dari file terbaca <b>${excelRecs.length}</b> spek (unit di-gabung per spek).<br>`+
+        `➕ Ditambah: <b>${adds.length}</b><br>`+
+        `✏️ Diupdate (harga/rentang berubah): <b>${updates.length}</b><br>`+
+        `⏸️ Tetap (tidak berubah): <b>${unchanged}</b><br>`+
+        `<span style="color:var(--muted)">Data lama yang tidak ada di Excel dibiarkan apa adanya. HTL manual aman.</span>`;
+      impConfirm.style.display="block";
+      // kalau nggak ada yang berubah, sembunyikan tombol Terapkan
+      if(adds.length===0 && updates.length===0){
+        impConfirm.style.display="none";
+        impInfo.innerHTML += `<br><b style="color:var(--teal)">Semua sudah sinkron — nggak ada yang perlu diubah.</b>`;
+      }
+    }catch(err){
+      showImpErr("Gagal baca file: "+err.message);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+function showImpErr(msg){ impErr.style.display="block"; impErr.textContent="⚠️ "+msg; }
+
+// Parse workbook -> array record standar
+function parseWorkbook(wb){
+  const out = [];
+  wb.SheetNames.forEach(name=>{
+    const ws = wb.Sheets[name];
+    // baca sebagai array-of-arrays biar bisa cari baris header sendiri
+    const rows = XLSX.utils.sheet_to_json(ws, {header:1, raw:true, defval:null});
+    if(!rows.length) return;
+
+    // cari baris header: baris yg paling banyak cocok sama alias
+    let headerRow = -1, colMap = null, bestScore = 0;
+    for(let i=0;i<Math.min(rows.length,20);i++){
+      const map = matchHeader(rows[i]);
+      const score = Object.keys(map).length;
+      if(score>bestScore){ bestScore=score; headerRow=i; colMap=map; }
+    }
+    // butuh minimal 4 kolom cocok, dan wajib ada merk + harga
+    if(headerRow<0 || bestScore<4 || colMap.merk===undefined || colMap.harga===undefined) return;
+
+    for(let i=headerRow+1;i<rows.length;i++){
+      const row = rows[i];
+      if(!row) continue;
+      const merk = row[colMap.merk], tipe = row[colMap.tipeDetail];
+      // skip baris kosong / baris header yg keulang di tengah
+      if((merk==null||String(merk).trim()==="") && (tipe==null||String(tipe).trim()==="")) continue;
+      if(normHead(merk)==="merk") continue; // header keulang
+
+      out.push({
+        area:       up(colMap.area!==undefined ? row[colMap.area] : ""),
+        merk:       up(merk),
+        tipeDetail: String(tipe==null?"":tipe).trim().replace(/\s+/g," "),
+        transmisi:  normTrans(colMap.transmisi!==undefined ? row[colMap.transmisi] : ""),
+        tahun:      toNum(colMap.tahun!==undefined ? row[colMap.tahun] : null),
+        harga:      toNum(row[colMap.harga]),
+        htl:        null,
+        updatedAt:  new Date().toISOString()
+      });
+    }
+  });
+  return out;
+}
+// cocokkan sebaris sel ke field standar -> {field: colIndex}
+function matchHeader(row){
+  const map = {};
+  if(!row) return map;
+  row.forEach((cell,idx)=>{
+    const h = normHead(cell);
+    if(!h) return;
+    for(const field in HEADER_ALIAS){
+      if(map[field]!==undefined) continue;
+      if(HEADER_ALIAS[field].includes(h)){ map[field]=idx; break; }
+    }
+  });
+  return map;
+}
+
+// TERAPKAN rencana merge: tambah data baru + edit harga yang berubah.
+// Data lama yang tidak disebut Excel TIDAK disentuh. Pakai satu update() -> atomic.
+impConfirm.addEventListener("click", ()=>{
+  if(!importPlan) return;
+  const now = new Date().toISOString();
+  const patch = {};   // objek multi-path buat update()
+  // data baru -> bikin key baru di bawah "mobil"
+  importPlan.adds.forEach(r=>{ r.updatedAt = now; patch[push(mobilRef).key] = r; });
+  // harga berubah -> update harga + rentang + jumlah + updatedAt (tipe/tahun/htl tetap)
+  importPlan.updates.forEach(u=>{
+    patch[u.key+"/harga"]     = u.r.harga;
+    patch[u.key+"/hargaMin"]  = u.r.hargaMin;
+    patch[u.key+"/hargaMax"]  = u.r.hargaMax;
+    patch[u.key+"/count"]     = u.r.count;
+    patch[u.key+"/updatedAt"] = now;
+  });
+  if(Object.keys(patch).length===0){ importOverlay.classList.remove("show"); return; }
+  update(mobilRef, patch)
+    .then(()=>{
+      importOverlay.classList.remove("show");
+      toast(`✅ ${importPlan.adds.length} ditambah, ${importPlan.updates.length} diupdate`);
+    })
+    .catch(err=>showImpErr("Gagal simpan: "+err.message));
+});
+
+/* ============================================================
+   ANALISA — 3 tab: kurva depresiasi, selisih area, unit di bawah pasar.
+   Semua pakai MEDIAN (nilai tengah), bukan rata-rata, biar satu unit
+   dengan harga ekstrem nggak nyeret kesimpulan.
+   ============================================================ */
+const anaOverlay = document.getElementById("anaOverlay");
+let anaTab    = "dep";   // tab yang lagi kebuka
+let anaModel  = null;    // model terpilih di tab depresiasi
+let anaAmbang = 10;      // ambang % di bawah pasar
+
+// nilai tengah dari sederet angka
+function median(a){
+  if(!a.length) return null;
+  const s = [...a].sort((x,y)=>x-y), t = Math.floor(s.length/2);
+  return s.length % 2 ? s[t] : Math.round((s[t-1]+s[t])/2);
+}
+// cuma record yang punya harga yang bisa dianalisa
+function dataHarga(){ return Object.entries(allData).filter(([,d])=>d.harga!=null); }
+
+document.getElementById("btnAnalisa").addEventListener("click", ()=>{
+  if(!dataHarga().length){ toast("Belum ada data harga buat dianalisa"); return; }
+  anaOverlay.classList.add("show");
+  renderAnalisa();
+});
+document.getElementById("anaClose").addEventListener("click", ()=>anaOverlay.classList.remove("show"));
+anaOverlay.addEventListener("click", e=>{ if(e.target.id==="anaOverlay") anaOverlay.classList.remove("show"); });
+document.querySelectorAll(".ana-tab").forEach(b=>b.addEventListener("click", ()=>{
+  anaTab = b.dataset.tab;
+  document.querySelectorAll(".ana-tab").forEach(x=>x.classList.toggle("on", x===b));
+  renderAnalisa();
+}));
+
+function renderAnalisa(){
+  const body = document.getElementById("anaBody");
+  body.innerHTML = anaTab==="dep"  ? htmlDepresiasi()
+                 : anaTab==="area" ? htmlArea()
+                 :                   htmlPeluang();
+
+  // kontrol dipasang SETELAH HTML digambar ulang
+  const selModel = document.getElementById("anaModelSel");
+  if(selModel) selModel.addEventListener("change", ()=>{ anaModel = selModel.value; renderAnalisa(); });
+  const selAmbang = document.getElementById("anaAmbangSel");
+  if(selAmbang) selAmbang.addEventListener("change", ()=>{ anaAmbang = Number(selAmbang.value); renderAnalisa(); });
+  // klik unit di tab "di bawah pasar" -> langsung buka form edit
+  body.querySelectorAll("[data-ana-edit]").forEach(el=>el.addEventListener("click", ()=>{
+    anaOverlay.classList.remove("show");
+    openForm(el.dataset.anaEdit);
+  }));
+}
+
+/* ---------- TAB 1: kurva depresiasi per model ---------- */
+function htmlDepresiasi(){
+  const arr = dataHarga().map(([,d])=>d);
+
+  // daftar model, diurut dari yang paling banyak unitnya (yang sering ketemu di atas)
+  const jml = new Map();
+  arr.forEach(d=>{ const m = modelOf(d); jml.set(m, (jml.get(m)||0) + (d.count||1)); });
+  const models = [...jml].sort((a,b)=>b[1]-a[1]);
+  if(!models.length) return `<div class="ana-empty">Belum ada data harga.</div>`;
+
+  // default: ikut filter Model kalau lagi aktif, kalau nggak ambil yang paling banyak
+  if(!anaModel || !jml.has(anaModel)){
+    anaModel = (filters.model && jml.has(filters.model)) ? filters.model : models[0][0];
+  }
+
+  // kelompokkan harga per tahun
+  const per = new Map();
+  arr.filter(d=>modelOf(d)===anaModel && d.tahun!=null).forEach(d=>{
+    const y = Number(d.tahun);
+    if(!per.has(y)) per.set(y, {h:[], n:0});
+    per.get(y).h.push(d.harga);
+    per.get(y).n += (d.count||1);
+  });
+  const seri = [...per].map(([y,v])=>({y, med:median(v.h), n:v.n})).sort((a,b)=>b.y-a.y);
+
+  const opsi = models.map(([m,n])=>
+    `<option value="${esc(m)}"${m===anaModel?" selected":""}>${esc(m)} (${n} unit)</option>`
+  ).join("");
+  let html = `<select class="ana-sel" id="anaModelSel">${opsi}</select>`;
+
+  if(seri.length < 2){
+    return html + `<div class="ana-empty">Data <b>${esc(anaModel)}</b> cuma ada di ${seri.length} tahun.<br>Butuh minimal 2 tahun buat lihat depresiasi.</div>`;
+  }
+
+  // laju penyusutan rata-rata per tahun (dihitung majemuk, bukan selisih lurus)
+  const baru = seri[0], lama = seri[seri.length-1];
+  const jarak = baru.y - lama.y;
+  let laju = null;
+  if(jarak>0 && lama.med>0 && baru.med>0) laju = (1 - Math.pow(lama.med/baru.med, 1/jarak)) * 100;
+
+  const totalUnit = seri.reduce((a,b)=>a+b.n, 0);
+  html += `<div class="ana-kpi">
+    <div><div class="kpi-l">Turun/tahun</div><div class="kpi-v">${laju!=null ? laju.toFixed(1)+"%" : "—"}</div></div>
+    <div><div class="kpi-l">Rentang</div><div class="kpi-v">${lama.y}–${baru.y}</div></div>
+    <div><div class="kpi-l">Total unit</div><div class="kpi-v">${totalUnit}</div></div>
+  </div>`;
+
+  const maxMed = Math.max(...seri.map(x=>x.med));
+  html += seri.map(x=>`
+    <div class="bar-row">
+      <div class="bar-y">${x.y}</div>
+      <div class="bar-track">
+        <div class="bar-fill" style="width:${Math.round(x.med/maxMed*100)}%"></div>
+        <div class="bar-v">${jt(x.med)}</div>
+      </div>
+      <div class="bar-n">${x.n} unit</div>
+    </div>`).join("");
+
+  html += `<div class="ana-note" style="margin-top:12px">
+    Angka batang = <b>harga tengah</b> tiap tahun, semua transmisi &amp; area digabung.
+    Tahun yang cuma diisi 1–2 unit gampang meleset — lihat jumlah unit di kanan sebelum dipakai jadi patokan.
+  </div>`;
+  return html;
+}
+
+// Format selisih rupiah jadi ringkas + bertanda: 12000000 -> "+12 jt", -12000000 -> "-12 jt"
+function selisihJt(n){
+  const juta = Math.round(n/1e6);
+  if(juta===0) return "~0";
+  return (juta>0 ? "+" : "-") + Math.abs(juta) + " jt";
+}
+/* ---------- TAB 2: selisih DKI vs NON DKI ---------- */
+function htmlArea(){
+  // Bandingkan per SPEK yang sama persis (model+tahun+transmisi) di dua area.
+  // Ini penting: kalau cuma bandingin harga rata-rata per model, model yang
+  // stok DKI-nya kebetulan lebih muda bakal kelihatan "lebih mahal" padahal beda umur.
+  const byKey = new Map();
+  dataHarga().forEach(([,d])=>{
+    const a = up(d.area);
+    if(a!=="DKI" && a!=="NON DKI") return;
+    const k = [modelOf(d), d.tahun, normTrans(d.transmisi)].join("|");
+    const kk = k + "@" + a;
+    if(!byKey.has(kk)) byKey.set(kk, []);
+    byKey.get(kk).push(d.harga);
+  });
+
+  const perModel = new Map();
+  new Set([...byKey.keys()].map(k=>k.split("@")[0])).forEach(k=>{
+    const dki = byKey.get(k+"@DKI"), non = byKey.get(k+"@NON DKI");
+    if(!dki || !non) return;                       // spek harus ada di dua-duanya
+    const a = median(dki), b = median(non);
+    if(!a) return;
+    const m = k.split("|")[0];
+    if(!perModel.has(m)) perModel.set(m, []);
+    perModel.get(m).push({ pct:((b-a)/a)*100, rp:b-a });
+  });
+
+  const baris = [];
+  perModel.forEach((v,m)=>{
+    if(v.length < 2) return;                       // minimal 2 spek pembanding
+    baris.push({ m, n:v.length, pct:median(v.map(x=>x.pct)), rp:median(v.map(x=>x.rp)) });
+  });
+  baris.sort((a,b)=>Math.abs(b.pct)-Math.abs(a.pct));
+
+  if(!baris.length){
+    return `<div class="ana-empty">Belum ada model yang spek-nya (model+tahun+transmisi) ada di DKI <b>dan</b> Non DKI sekaligus.<br>Perbandingan butuh spek kembar di dua area.</div>`;
+  }
+
+  let html = `<div class="ana-note">
+    Selisih dihitung per <b>spek kembar</b> (model+tahun+transmisi yang sama persis di dua area), baru diambil nilai tengahnya per model.
+    Merah = Non DKI lebih mahal, hijau = Non DKI lebih murah.
+  </div>`;
+  html += `<table class="ana-tbl"><tr><th>Model</th><th class="num">Spek</th><th class="num">Selisih</th><th class="num">%</th></tr>`;
+  html += baris.slice(0,20).map(b=>`
+    <tr>
+      <td>${esc(b.m)}</td>
+      <td class="num" style="color:var(--muted)">${b.n}</td>
+      <td class="num ${b.rp>0?"naik":"turun"}">${selisihJt(b.rp)}</td>
+      <td class="num ${b.pct>0?"naik":"turun"}">${b.pct>0?"+":""}${b.pct.toFixed(1)}%</td>
+    </tr>`).join("");
+  html += `</table>`;
+  return html;
+}
+
+/* ---------- TAB 3: unit di bawah harga pasar ---------- */
+function htmlPeluang(){
+  // Pembanding = unit dengan model+tahun+transmisi+AREA yang sama.
+  // Area ikut dimasukkan biar unit Non DKI nggak kelihatan "murah" cuma gara-gara beda area.
+  const grup = new Map();
+  dataHarga().forEach(([k,d])=>{
+    const g = [modelOf(d), d.tahun, normTrans(d.transmisi), up(d.area)].join("|");
+    if(!grup.has(g)) grup.set(g, []);
+    grup.get(g).push([k,d]);
+  });
+
+  const hasil = [];
+  grup.forEach(items=>{
+    if(items.length < 3) return;                    // butuh minimal 3 pembanding
+    const med = median(items.map(([,d])=>d.harga));
+    if(!med) return;
+    items.forEach(([k,d])=>{
+      const pct = ((med - d.harga) / med) * 100;
+      if(pct >= anaAmbang) hasil.push({k, d, med, pct});
+    });
+  });
+  hasil.sort((a,b)=>b.pct-a.pct);
+
+  const opsi = [5,10,15,20,25].map(v=>
+    `<option value="${v}"${v===anaAmbang?" selected":""}>Minimal ${v}% di bawah pasar</option>`
+  ).join("");
+  let html = `<select class="ana-sel" id="anaAmbangSel">${opsi}</select>`;
+
+  if(!hasil.length){
+    return html + `<div class="ana-empty">Nggak ada unit yang ${anaAmbang}% atau lebih di bawah harga pasarnya.<br>Coba turunkan ambangnya.</div>`;
+  }
+
+  html += `<div class="ana-note">
+    Ketemu <b>${hasil.length}</b> unit. Pembandingnya spek yang sama persis (model, tahun, transmisi, area) dengan minimal 3 unit.
+    Harga murah bisa berarti peluang, bisa juga berarti kondisi unitnya beda — ini penyaring awal, bukan kesimpulan. Ketuk buat buka datanya.
+  </div>`;
+  html += hasil.slice(0,25).map(x=>`
+    <div class="ana-item" data-ana-edit="${x.k}">
+      <div class="t">${esc(x.d.tipeDetail)||"(tanpa tipe)"}</div>
+      <div class="s">${x.d.tahun||"-"} · ${esc(normTrans(x.d.transmisi))} · ${esc(up(x.d.area))||"-"}</div>
+      <div class="r">
+        <span>${rp(x.d.harga)} <span style="color:var(--muted);font-weight:600">vs pasar ${jt(x.med)}</span></span>
+        <span class="ana-selisih">−${x.pct.toFixed(0)}%</span>
+      </div>
+    </div>`).join("");
+  return html;
+}
+
+/* ============================================================
+   EXPORT ke Excel (format kamu + kolom HTL & Update)
+   ============================================================ */
+document.getElementById("btnExport").addEventListener("click", ()=>{
+  const arr = Object.values(allData);
+  if(!arr.length){ toast("Belum ada data buat diekspor"); return; }
+  // susun kolom + rentang harga, jumlah unit, HTL & Update
+  const aoa = [["Area","Merk","Tipe Detail","Transmisi","Thn","Harga (rata²)","Harga Min","Harga Max","Jml Unit","HTL","Update"]];
+  arr.sort((a,b)=>String(b.updatedAt||"").localeCompare(String(a.updatedAt||"")))
+     .forEach(d=>aoa.push([up(d.area),d.merk,d.tipeDetail,normTrans(d.transmisi),d.tahun,d.harga??"",d.hargaMin??"",d.hargaMax??"",d.count??1,d.htl??"",fullTime(d.updatedAt)]));
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "HTL Jualan");
+  const tgl = new Date().toISOString().slice(0,10);
+  XLSX.writeFile(wb, `HTL-Jualan-${tgl}.xlsx`);
+  toast("⬇️ Excel diunduh");
+});
+</script>
+</body>
+</html>
